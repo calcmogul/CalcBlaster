@@ -9,7 +9,7 @@
 
 sf::Texture Ship::m_shipTexture;
 bool Ship::m_isLoaded = false;
-float Ship::m_maxSpeed = 10.f;
+float Ship::m_maxSpeed = 30.f;
 
 Ship::Ship( const sf::Vector2f& position , float fullHealth ) : Box2DBase( &shape , position , b2_dynamicBody ) , shape( 6 ) {
     if ( !m_isLoaded ) {
@@ -58,11 +58,11 @@ Ship::~Ship() {
 
 void Ship::controlShip() {
     if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Left ) ) {
-        body->SetAngularVelocity( body->GetAngularVelocity() + 0.1f );
+        body->SetAngularVelocity( body->GetAngularVelocity() + 0.4f );
     }
 
     if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Right ) ) {
-        body->SetAngularVelocity( body->GetAngularVelocity() - 0.1f );
+        body->SetAngularVelocity( body->GetAngularVelocity() - 0.4f );
     }
 
     // limit body angle to between 0 and 2 * pi
@@ -75,19 +75,19 @@ void Ship::controlShip() {
     }
 
     if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Up ) ) {
-        body->ApplyForceToCenter( b2Vec2( 7.5f * cos( body->GetAngle() + b2_pi / 2.f ) , 7.5f * sin( body->GetAngle() + b2_pi / 2 ) ) );
+        body->ApplyForceToCenter( 4 * b2Vec2( 7.5f * cos( body->GetAngle() + b2_pi / 2.f ) , 7.5f * sin( body->GetAngle() + b2_pi / 2 ) ) );
     }
 
     if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Down ) ) {
-        body->ApplyForceToCenter( b2Vec2( -7.5f * cos( body->GetAngle() + b2_pi / 2.f ) , -7.5f * sin( body->GetAngle() + b2_pi / 2 ) ) );
+        body->ApplyForceToCenter( 4 * b2Vec2( -7.5f * cos( body->GetAngle() + b2_pi / 2.f ) , -7.5f * sin( body->GetAngle() + b2_pi / 2 ) ) );
     }
 
     m_shipSpeed = body->GetLinearVelocity();
-    /*if ( m_shipSpeed.Length() > m_maxSpeed ) {
+    if ( m_shipSpeed.Length() > m_maxSpeed ) {
         float32 angle = atan2( m_shipSpeed.y , m_shipSpeed.x );
 
         body->SetLinearVelocity( b2Vec2( m_shipSpeed.x - ( m_shipSpeed.Length() - m_maxSpeed ) * cos( angle ) , m_shipSpeed.y - ( m_shipSpeed.Length() - m_maxSpeed ) * sin( angle ) ) );
-    }*/
+    }
 }
 
 float Ship::getHealth() {
