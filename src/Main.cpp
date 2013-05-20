@@ -19,7 +19,7 @@
 #include "Bullet.hpp"
 
 int main() {
-    sf::RenderWindow mainWin( sf::VideoMode( 800 , 600 )  , "Prototype I: Space Exploration" , sf::Style::Resize | sf::Style::Close );
+    sf::RenderWindow mainWin( sf::VideoMode( 800 , 600 )  , "Calc Blaster" , sf::Style::Resize | sf::Style::Close );
     mainWin.setMouseCursorVisible( false );
     mainWin.setVerticalSyncEnabled( true );
 
@@ -47,8 +47,13 @@ int main() {
     Ship myShip( sf::Vector2f( 0.f , 300.f ) , 100.f );
     ProgressBar healthBar( sf::Vector2f( 100.f , 19.f ) , "Health" , sf::Color( 120 , 0 , 0 ) , sf::Color( 40 , 40 , 40 ) , sf::Color( 50 , 50 , 50 ) );
 
+    // Used to make background move past at 10 m/s
+    sf::RectangleShape backShape( sf::Vector2f( 0.f , 0.f ) );
+    Box2DBase backBody( &backShape , sf::Vector2f( 0.f , 300.f ) , b2_kinematicBody );
+    backBody.body->SetLinearVelocity( b2Vec2( 0.f , 10.f ) );
+
     for ( unsigned int index = 0 ; index < 1 ; index++ ) {
-        Planet::add( sf::Vector2f( 200.f * index , 0.f ) , 100.f / 30.f , sf::Color( 0 , 128 , 0 ) );
+        //Planet::add( sf::Vector2f( 200.f * index , 0.f ) , 100.f / 30.f , sf::Color( 0 , 128 , 0 ) );
     }
     /*Planet::add( sf::Vector2f( 0.f , 0.f ) , 100.f / 30.f , sf::Color( 0 , 0 , 255 ) ); // 200.f / 30.f
     Planet::add( sf::Vector2f( 500.f , 0.f ) , 100.f / 30.f , sf::Color( 255 , 0 , 0 ) );
@@ -61,7 +66,7 @@ int main() {
     int32 velocityIterations = 1; //6
     int32 positionIterations = 1; //2
 
-    mainWin.setView( sf::View( sf::FloatRect( myShip.shape.getPosition().x - mainWin.getSize().x / 2 , myShip.shape.getPosition().y - mainWin.getSize().y / 2 , mainWin.getSize().x , mainWin.getSize().y ) ) );
+    mainWin.setView( sf::View( sf::FloatRect( backBody.drawShape->getPosition().x - mainWin.getSize().x / 2 , backBody.drawShape->getPosition().y - mainWin.getSize().y / 2 , mainWin.getSize().x , mainWin.getSize().y ) ) );
 
     sf::Event event;
     sf::Clock shootClock;
@@ -97,6 +102,7 @@ int main() {
             Box2DBase::world.Step( timeStep , velocityIterations , positionIterations );
 
             myShip.syncObject( mainWin );
+            backBody.syncObject( mainWin );
             Planet::syncObjects( mainWin );
             Bullet::syncObjects( mainWin );
 
@@ -105,29 +111,54 @@ int main() {
 
             myShip.controlShip();
 
-            if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Space ) && shootClock.getElapsedTime().asMilliseconds() > 0 ) {
+            /* ===== Keep main ship within boundaries of window ==== */
+            sf::Vector2f myPos = myShip.drawShape->getPosition();
+            sf::View myView = mainWin.getView();
+
+            // Limit left edge
+            if ( myPos.x < myView.getCenter().x - myView.getSize().x / 2.f ) {
+                myPos.x = myView.getCenter().x - myView.getSize().x / 2.f;
+            }
+
+            // Limit right edge
+            if ( myPos.x > myView.getCenter().x + myView.getSize().x / 2.f ) {
+                myPos.x = myView.getCenter().x + myView.getSize().x / 2.f;
+            }
+
+            // Limit top edge
+            if ( myPos.y < myView.getCenter().y - myView.getSize().y / 2.f ) {
+                myPos.y = myView.getCenter().y - myView.getSize().y / 2.f;
+            }
+
+            // Limit bottom edge
+            if ( myPos.y > myView.getCenter().y + myView.getSize().y / 2.f ) {
+                myPos.y = myView.getCenter().y + myView.getSize().y / 2.f;
+            }
+            /* ===================================================== */
+
+            if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Space ) && shootClock.getElapsedTime().asMilliseconds() > 250 ) {
                 Bullet::add( myShip , mainWin );
                 shootClock.restart();
             }
 
             /* ===== Handle background texture shifting with ship ===== */
             // Move background left
-            if ( myShip.shape.getPosition().x - backgroundSprite.getPosition().x < mainWin.getSize().x / 2 + 86.f ) {
+            if ( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x < mainWin.getSize().x / 2 + 86.f ) {
                 backgroundSprite.setPosition( backgroundSprite.getPosition().x - 86.f * ( std::ceil( std::fabs( myShip.shape.getPosition().x - backgroundSprite.getPosition().x - mainWin.getSize().x / 2 - 86.f ) / 86.f ) ) , backgroundSprite.getPosition().y );
             }
 
             // Move background right
-            if ( myShip.shape.getPosition().x - backgroundSprite.getPosition().x > mainWin.getSize().x / 2 + 86.f ) {
+            if ( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x > mainWin.getSize().x / 2 + 86.f ) {
                 backgroundSprite.setPosition( backgroundSprite.getPosition().x + 86.f * ( std::ceil( std::fabs( myShip.shape.getPosition().x - backgroundSprite.getPosition().x - mainWin.getSize().x / 2 - 86.f ) / 86.f ) ) , backgroundSprite.getPosition().y );
             }
 
             // Move background up
-            if ( myShip.shape.getPosition().y - backgroundSprite.getPosition().y < mainWin.getSize().y / 2 + 86.f ) {
+            if ( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y < mainWin.getSize().y / 2 + 86.f ) {
                 backgroundSprite.setPosition( backgroundSprite.getPosition().x , backgroundSprite.getPosition().y - 86.f * ( std::ceil( std::fabs( myShip.shape.getPosition().y - backgroundSprite.getPosition().y - mainWin.getSize().y / 2 - 86.f ) / 86.f ) ) );
             }
 
             // Move background down
-            if ( myShip.shape.getPosition().y - backgroundSprite.getPosition().y > mainWin.getSize().y / 2 + 86.f ) {
+            if ( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y > mainWin.getSize().y / 2 + 86.f ) {
                 backgroundSprite.setPosition( backgroundSprite.getPosition().x , backgroundSprite.getPosition().y + 86.f * ( std::ceil( std::fabs( myShip.shape.getPosition().y - backgroundSprite.getPosition().y - mainWin.getSize().y / 2 - 86.f ) / 86.f ) ) );
             }
             /* ======================================================== */
@@ -152,7 +183,7 @@ int main() {
 
         mainWin.display();
 
-        mainWin.setView( sf::View( sf::FloatRect( myShip.shape.getPosition().x - mainWin.getSize().x / 2 , myShip.shape.getPosition().y - mainWin.getSize().y / 2 , mainWin.getSize().x , mainWin.getSize().y ) ) );
+        mainWin.setView( sf::View( sf::FloatRect( backBody.drawShape->getPosition().x - mainWin.getSize().x / 2 , backBody.drawShape->getPosition().y - mainWin.getSize().y / 2 , mainWin.getSize().x , mainWin.getSize().y ) ) );
     }
 
     Planet::cleanup();

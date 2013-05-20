@@ -59,7 +59,8 @@ void Bullet::checkCollisions( const Ship& ship , const sf::Window& referTo ) {
     }
 }
 
-Bullet::Bullet( const Ship& ship , const sf::Window& referTo ) : Box2DBase( &shape , BoxToSFML( ship.body->GetPosition().x + 1.5f * cos( ship.body->GetAngle() + b2_pi / 2.f ) , ship.body->GetPosition().y + 1.5f * sin( ship.body->GetAngle() + b2_pi / 2.f ) , referTo.getSize().y ) , b2_dynamicBody ) , shape( sf::Vector2f( 2.f , 10.f ) ) {
+Bullet::Bullet( const Ship& ship , const sf::Window& referTo ) :
+        Box2DBase( &shape , BoxToSFML( ship.body->GetPosition().x + 1.5f * cos( ship.body->GetAngle() + b2_pi / 2.f ) , ship.body->GetPosition().y + 1.5f * sin( ship.body->GetAngle() + b2_pi / 2.f ) , referTo.getSize().y ) , b2_dynamicBody ) , shape( sf::Vector2f( 2.f , 10.f ) ) {
     float angle = ship.body->GetAngle();
 
     // Define the ground box shape.

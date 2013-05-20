@@ -57,31 +57,34 @@ Ship::~Ship() {
 }
 
 void Ship::controlShip() {
-    if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Left ) ) {
-        body->SetAngularVelocity( body->GetAngularVelocity() + 0.4f );
+    // Sets base velocity to forward and current body angle to straight
+    body->SetLinearVelocity( b2Vec2( 0.f , 10.f ) );
+    body->SetAngularVelocity( 0.f );
+    body->SetTransform( body->GetPosition() , 0.f );
+
+    // Holds current velocity
+    b2Vec2 curVel = body->GetLinearVelocity();
+
+    if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Left ) || sf::Keyboard::isKeyPressed( sf::Keyboard::A ) ) {
+        curVel += b2Vec2( -10.f , 0.f );
     }
 
-    if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Right ) ) {
-        body->SetAngularVelocity( body->GetAngularVelocity() - 0.4f );
+    if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Right ) || sf::Keyboard::isKeyPressed( sf::Keyboard::D ) ) {
+        curVel += b2Vec2( 10.f , 0.f );
     }
 
-    // limit body angle to between 0 and 2 * pi
-    float tempAngle = body->GetAngle();
-    if ( tempAngle > 2.f * b2_pi ) {
-        body->SetTransform( body->GetPosition() , tempAngle - 2.f * b2_pi );
-    }
-    else if ( tempAngle < 0.f ) {
-        body->SetTransform( body->GetPosition() , tempAngle + 2.f * b2_pi );
+    if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Up ) || sf::Keyboard::isKeyPressed( sf::Keyboard::W ) ) {
+        curVel += b2Vec2( 0.f , 10.f );
     }
 
-    if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Up ) ) {
-        body->ApplyForceToCenter( 4 * b2Vec2( 7.5f * cos( body->GetAngle() + b2_pi / 2.f ) , 7.5f * sin( body->GetAngle() + b2_pi / 2 ) ) );
+    if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Down ) || sf::Keyboard::isKeyPressed( sf::Keyboard::S ) ) {
+        curVel += b2Vec2( 0.f , -10.f );
     }
 
-    if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Down ) ) {
-        body->ApplyForceToCenter( 4 * b2Vec2( -7.5f * cos( body->GetAngle() + b2_pi / 2.f ) , -7.5f * sin( body->GetAngle() + b2_pi / 2 ) ) );
-    }
+    // Set resultant velocity
+    body->SetLinearVelocity( curVel );
 
+    // Impose speed limit
     m_shipSpeed = body->GetLinearVelocity();
     if ( m_shipSpeed.Length() > m_maxSpeed ) {
         float32 angle = atan2( m_shipSpeed.y , m_shipSpeed.x );
