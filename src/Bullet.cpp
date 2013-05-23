@@ -5,7 +5,7 @@
 //=============================================================================
 
 #include "Bullet.hpp"
-#include "Ship.hpp"
+#include "ShipBase.hpp"
 
 std::vector<Bullet*> Bullet::bullets;
 
@@ -38,11 +38,11 @@ void Bullet::syncObjects( const sf::Window& referTo ) {
     }
 }
 
-void Bullet::add( const Ship& ship , const sf::Window& referTo ) {
-    bullets.push_back( new Bullet( ship , referTo ) );
+void Bullet::add( const ShipBase& ship , const sf::Window& referTo , const sf::Color& color ) {
+    bullets.push_back( new Bullet( ship , referTo , color ) );
 }
 
-void Bullet::checkCollisions( const Ship& ship , const sf::Window& referTo ) {
+void Bullet::checkCollisions( const ShipBase& ship , const sf::Window& referTo ) {
     b2Body* bulletBody;
 
     unsigned int index = 0;
@@ -59,8 +59,8 @@ void Bullet::checkCollisions( const Ship& ship , const sf::Window& referTo ) {
     }
 }
 
-Bullet::Bullet( const Ship& ship , const sf::Window& referTo ) :
-        Box2DBase( &shape , BoxToSFML( ship.body->GetPosition().x + 1.5f * cos( ship.body->GetAngle() + b2_pi / 2.f ) , ship.body->GetPosition().y + 1.5f * sin( ship.body->GetAngle() + b2_pi / 2.f ) , referTo.getSize().y ) , b2_dynamicBody ) , shape( sf::Vector2f( 2.f , 10.f ) ) {
+Bullet::Bullet( const ShipBase& ship , const sf::Window& referTo , const sf::Color& color ) :
+        Box2DBase( &shape , BoxToSFML( ship.body->GetPosition().x + 1.3f * cos( ship.body->GetAngle() + b2_pi / 2.f ) , ship.body->GetPosition().y + 1.3f * sin( ship.body->GetAngle() + b2_pi / 2.f ) , referTo.getSize().y ) , b2_dynamicBody ) , shape( sf::Vector2f( 2.f , 10.f ) ) {
     float angle = ship.body->GetAngle();
 
     // Define the ground box shape.
@@ -76,6 +76,6 @@ Bullet::Bullet( const Ship& ship , const sf::Window& referTo ) :
     body->SetLinearVelocity( b2Vec2( 12.f * cos( angle + b2_pi / 2.f ) , 12.f * sin( angle + b2_pi / 2.f ) ) + ship.body->GetLinearVelocity() ); // sets bullet to travel at 12 plus how fast ship was going while shooting (conservation of momentum)
     body->SetTransform( body->GetPosition() , angle );
 
-    shape.setFillColor( sf::Color( 255 , 255 , 0 ) );
+    shape.setFillColor( color );
     shape.setOrigin( 5.f , 1.f );
 }

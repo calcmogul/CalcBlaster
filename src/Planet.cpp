@@ -5,7 +5,7 @@
 //=============================================================================
 
 #include "Planet.hpp"
-#include "Ship.hpp"
+#include "ShipBase.hpp"
 
 std::vector<Planet*> Planet::m_planets;
 
@@ -26,7 +26,7 @@ void Planet::cleanup() {
     }
 }
 
-void Planet::drawAll( const Ship& ship , sf::RenderTarget& target , sf::RenderStates states ) {
+void Planet::drawAll( const ShipBase& ship , sf::RenderTarget& target , sf::RenderStates states ) {
     for ( unsigned int index = 0 ; index < m_planets.size() ; index++ ) {
         // Realign shading with position of given ship's current position
         m_planets[index]->shader.setParameter( "currentPos" , m_planets[index]->shape.getPosition().x - ship.shape.getPosition().x + target.getSize().x / 2.f , ship.shape.getPosition().y - m_planets[index]->shape.getPosition().y + target.getSize().y / 2.f + 2.f/* offset for shading */ );

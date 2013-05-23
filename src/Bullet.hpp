@@ -10,7 +10,7 @@
 #include "Box2DBase.hpp"
 #include <SFML/Graphics/RectangleShape.hpp>
 
-class Ship;
+class ShipBase;
 
 class Bullet : public Box2DBase {
 public:
@@ -22,8 +22,8 @@ public:
     static void drawAll( sf::RenderTarget& target , sf::RenderStates states = sf::RenderStates::Default );
     static void syncObjects( const sf::Window& referTo );
 
-    static void add( const Ship& ship , const sf::Window& referTo );
-    static void checkCollisions( const Ship& ship , const sf::Window& referTo ); // checks if bullet collided with other object or left the screen to destroy it
+    static void add( const ShipBase& ship , const sf::Window& referTo , const sf::Color& color );
+    static void checkCollisions( const ShipBase& ship , const sf::Window& referTo ); // checks if bullet collided with other object or left the screen to destroy it
 
     sf::RectangleShape shape;
 
@@ -31,7 +31,7 @@ protected:
     static std::vector<Bullet*> bullets;
 
 private:
-    Bullet( const Ship& ship , const sf::Window& referTo );
+    Bullet( const ShipBase& ship , const sf::Window& referTo , const sf::Color& color );
 };
 
 #endif // BULLET_HPP

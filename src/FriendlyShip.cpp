@@ -1,17 +1,17 @@
 //=============================================================================
-//File Name: Ship.cpp
-//Description: Controls Box2D ship
+//File Name: FriendlyShip.cpp
+//Description: Handles actions and rendering of friendly ships (including
+//             player)
 //Author: Tyler Veness
 //=============================================================================
 
-#include <SFML/Graphics/Image.hpp>
-#include "Ship.hpp"
+#include "FriendlyShip.hpp"
+#include <SFML/Window/Keyboard.hpp>
 
-sf::Texture Ship::m_shipTexture;
-bool Ship::m_isLoaded = false;
-float Ship::m_maxSpeed = 30.f;
+sf::Texture FriendlyShip::m_shipTexture;
+bool FriendlyShip::m_isLoaded = false;
 
-Ship::Ship( const sf::Vector2f& position , float fullHealth ) : Box2DBase( &shape , position , b2_dynamicBody ) , shape( 6 ) {
+FriendlyShip::FriendlyShip( const sf::Vector2f& position , float fullHealth ) : ShipBase( position , fullHealth ) {
     if ( !m_isLoaded ) {
         sf::Image shipImage;
         if ( !shipImage.loadFromFile( "Resources/GalagaShip.png" ) ) {
@@ -24,8 +24,6 @@ Ship::Ship( const sf::Vector2f& position , float fullHealth ) : Box2DBase( &shap
 
         m_isLoaded = true;
     }
-
-    m_health = fullHealth;
 
     b2PolygonShape shipTriangle;
 
@@ -52,16 +50,19 @@ Ship::Ship( const sf::Vector2f& position , float fullHealth ) : Box2DBase( &shap
     /* ============================= */
 }
 
-Ship::~Ship() {
+FriendlyShip::~FriendlyShip() {
 
 }
 
-void Ship::controlShip() {
+void FriendlyShip::controlShip( void* userData ) {
     // Sets base velocity to forward and current body angle to straight
-    body->SetLinearVelocity( b2Vec2( 0.f , 10.f ) );
-    body->SetAngularVelocity( 0.f );
-    body->SetTransform( body->GetPosition() , 0.f );
+    //body->SetLinearVelocity( b2Vec2( 0.f , 10.f ) );
+    //body->SetAngularVelocity( 0.f );
+    //body->SetTransform( body->GetPosition() , 0.f );
 
+    body->SetAngularVelocity( 0.f );
+
+#if 0
     // Holds current velocity
     b2Vec2 curVel = body->GetLinearVelocity();
 
@@ -83,6 +84,32 @@ void Ship::controlShip() {
 
     // Set resultant velocity
     body->SetLinearVelocity( curVel );
+#endif
+
+    if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Left ) || sf::Keyboard::isKeyPressed( sf::Keyboard::A ) ) {
+        body->SetTransform( body->GetPosition() , body->GetAngle() + 4.f * 3.14159265f / 180.f );
+    }
+
+    if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Right ) || sf::Keyboard::isKeyPressed( sf::Keyboard::D ) ) {
+        body->SetTransform( body->GetPosition() , body->GetAngle() - 4.f * 3.14159265f / 180.f );
+    }
+
+    // limit body angle to between 0 and 2 * pi
+    float tempAngle = body->GetAngle();
+    if ( tempAngle > 2.f * b2_pi ) {
+        body->SetTransform( body->GetPosition() , tempAngle - 2.f * b2_pi );
+    }
+    else if ( tempAngle < 0.f ) {
+        body->SetTransform( body->GetPosition() , tempAngle + 2.f * b2_pi );
+    }
+
+    if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Up ) || sf::Keyboard::isKeyPressed( sf::Keyboard::W ) ) {
+        body->ApplyForceToCenter( 2.f * b2Vec2( 7.5f * cos( body->GetAngle() + b2_pi / 2.f ) , 7.5f * sin( body->GetAngle() + b2_pi / 2 ) ) );
+    }
+
+    if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Down ) || sf::Keyboard::isKeyPressed( sf::Keyboard::S ) ) {
+        body->ApplyForceToCenter( 2.f * b2Vec2( -7.5f * cos( body->GetAngle() + b2_pi / 2.f ) , -7.5f * sin( body->GetAngle() + b2_pi / 2 ) ) );
+    }
 
     // Impose speed limit
     m_shipSpeed = body->GetLinearVelocity();
@@ -91,8 +118,4 @@ void Ship::controlShip() {
 
         body->SetLinearVelocity( b2Vec2( m_shipSpeed.x - ( m_shipSpeed.Length() - m_maxSpeed ) * cos( angle ) , m_shipSpeed.y - ( m_shipSpeed.Length() - m_maxSpeed ) * sin( angle ) ) );
     }
-}
-
-float Ship::getHealth() {
-    return m_health;
 }

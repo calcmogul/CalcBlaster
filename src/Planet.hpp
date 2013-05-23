@@ -12,7 +12,7 @@
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Shader.hpp>
 
-class Ship;
+class ShipBase;
 
 class Planet : public Box2DBase {
 public:
@@ -21,7 +21,7 @@ public:
     // Call this at end of program to free all planets and avoid memory leaks
     static void cleanup();
 
-    static void drawAll( const Ship& ship , sf::RenderTarget& target , sf::RenderStates states = sf::RenderStates::Default );
+    static void drawAll( const ShipBase& ship , sf::RenderTarget& target , sf::RenderStates states = sf::RenderStates::Default );
     static void syncObjects( const sf::Window& referTo );
 
     static void add( const sf::Vector2f& position , const float32& radius , const sf::Color& color );

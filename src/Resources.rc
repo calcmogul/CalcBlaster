@@ -8,12 +8,12 @@ BEGIN
   BEGIN
     BLOCK "040904E4"
     BEGIN
-      VALUE "CompanyName", "Tyler Veness"
+      VALUE "CompanyName", "Calc BC Games"
       VALUE "FileVersion", "1,0,0,0"
-      VALUE "InternalName", "Asteroids"
-      VALUE "LegalCopyright", "None"
-      VALUE "OriginalFilename", "Asteroids.exe"
-      VALUE "ProductName", "Asteroids"
+      VALUE "InternalName", "CalcBlaster"
+      VALUE "LegalCopyright", "Copyright (c) 2013 Calc BC Games"
+      VALUE "OriginalFilename", "CalcBlaster.exe"
+      VALUE "ProductName", "CalcBlaster"
       VALUE "ProductVersion", "1.0"
     END
   END
