@@ -26,6 +26,8 @@ public:
 
     static void controlShips( void* userData );
 
+    static unsigned int size();
+
 private:
     static sf::Texture m_shipTexture;
     static bool m_isLoaded;

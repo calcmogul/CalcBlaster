@@ -109,3 +109,7 @@ void EnemyShip::controlShip( void* userData ) {
     // Adjust velocity towards player
     body->SetLinearVelocity( b2Vec2( 0.f , 10.f ) + b2Vec2( 3.5f * cos( angle ) , 3.5f * sin( angle ) ) );
 }
+
+unsigned int EnemyShip::size() {
+    return m_enemyShips.size();
+}

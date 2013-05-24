@@ -57,6 +57,7 @@ int main() {
     EnemyShip::add( sf::Vector2f( 100.f , 200.f ) , 50.f );
     EnemyShip::add( sf::Vector2f( -100.f , 500.f ) , 50.f );
     EnemyShip::add( sf::Vector2f( 100.f , 500.f ) , 50.f );
+    EnemyShip::add( sf::Vector2f( 200.f , 200.f ) , 50.f );
 
     // Used to make background move past at 10 m/s
     sf::RectangleShape backShape( sf::Vector2f( 0.f , 0.f ) );
@@ -147,7 +148,7 @@ int main() {
 
             if ( sf::Keyboard::isKeyPressed( sf::Keyboard::J ) && shootClock.getElapsedTime().asMilliseconds() > 150 ) {
                 Bullet::add( myShip , mainWin , sf::Color( 255 , 255 , 0 ) );
-                for ( unsigned int index = 0 ; index < 4 ; index++ ) {
+                for ( unsigned int index = 0 ; index < EnemyShip::size() ; index++ ) {
                     EnemyShip::addBullet( index , mainWin );
                 }
                 shootClock.restart();
