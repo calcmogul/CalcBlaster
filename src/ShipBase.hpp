@@ -19,12 +19,15 @@ public:
     // userData contains special data needed by each function impl
     virtual void controlShip( void* userData ) = 0;
 
-    float getHealth();
+    void setHealth( long long int health );
+
+    long long int getHealth();
 
     sf::ConvexShape shape;
 
 protected:
-    float m_health;
+    // 100 per ship image
+    long long int m_health;
 
     static float m_maxSpeed;
     b2Vec2 m_shipSpeed;

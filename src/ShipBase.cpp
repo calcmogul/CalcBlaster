@@ -19,6 +19,10 @@ ShipBase::~ShipBase() {
 
 }
 
-float ShipBase::getHealth() {
+void ShipBase::setHealth( long long int health ) {
+    m_health = health;
+}
+
+long long int ShipBase::getHealth() {
     return m_health;
 }

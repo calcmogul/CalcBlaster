@@ -15,7 +15,7 @@ float BoxToSFML_y( float y , float boxHeight ) {
 }
 
 sf::Vector2f BoxToSFML( float x , float y , float boxHeight ) {
-    return sf::Vector2f( x * 30.f , boxHeight - y * 30.f );
+    return sf::Vector2f( BoxToSFML_x( x ) , BoxToSFML_y( y , boxHeight ) );
 }
 
 float SFMLToBox_x( float x ) {
@@ -27,7 +27,7 @@ float SFMLToBox_y( float y , float boxHeight ) {
 }
 
 b2Vec2 SFMLToBox( float x , float y , float boxHeight ) {
-    return b2Vec2( x / 30.f , ( boxHeight - y ) / 30.f );
+    return b2Vec2( SFMLToBox_x( x ) , SFMLToBox_y( y , boxHeight ) );
 }
 
 b2World Box2DBase::world( b2Vec2( 0.f , 0.f ) );
@@ -37,6 +37,7 @@ Box2DBase::Box2DBase( sf::Shape* sfShape , const sf::Vector2f& position , b2Body
 
     bodyDef.type = bodyType;
     bodyDef.position = b2Vec2( position.x / 30.f , ( 600 - position.y ) / 30.f );
+    bodyDef.fixedRotation = true;
 
     body = world.CreateBody( &bodyDef );
 

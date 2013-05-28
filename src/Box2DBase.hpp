@@ -12,10 +12,6 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Window/Window.hpp>
 
-namespace Constant {
-    static double G = 6.6738480f;
-}
-
 float BoxToSFML_x( float x );
 float BoxToSFML_y( float y , float boxHeight );
 

@@ -86,7 +86,7 @@ void EnemyShip::add( const sf::Vector2f& position , float fullHealth ) {
 }
 
 void EnemyShip::addBullet( unsigned int index , const sf::Window& referTo ) {
-    Bullet::add( *m_enemyShips[index] , referTo , sf::Color( rand() % 256 , rand() % 256 , rand() % 256 ) );
+    Bullet::add( *m_enemyShips[index] , referTo , sf::Color( 0 , 0 , 255 ) );
 }
 
 void EnemyShip::controlShips( void* userData ) {
@@ -99,7 +99,7 @@ void EnemyShip::controlShip( void* userData ) {
     ShipBase* playerShip = static_cast<ShipBase*>( userData );
 
     float angle = 90.f + atan2( body->GetPosition().y - playerShip->body->GetPosition().y , body->GetPosition().x - playerShip->body->GetPosition().x );
-    float distance = (body->GetPosition() - playerShip->body->GetPosition()).Length();
+    //float distance = (body->GetPosition() - playerShip->body->GetPosition()).Length();
 
     body->SetAngularVelocity( 0.f );
 

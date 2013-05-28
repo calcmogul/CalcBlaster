@@ -71,9 +71,9 @@ Bullet::Bullet( const ShipBase& ship , const sf::Window& referTo , const sf::Col
 
     // Add the bullet fixture to the bullet body.
     body->CreateFixture( &bulletBox , 1.f );
-    //body->SetBullet( true );
+    body->SetBullet( true );
 
-    body->SetLinearVelocity( b2Vec2( 12.f * cos( angle + b2_pi / 2.f ) , 12.f * sin( angle + b2_pi / 2.f ) ) + ship.body->GetLinearVelocity() ); // sets bullet to travel at 12 plus how fast ship was going while shooting (conservation of momentum)
+    body->SetLinearVelocity( b2Vec2( 10.f * cos( angle + b2_pi / 2.f ) , 10.f + 10.f * sin( angle + b2_pi / 2.f ) ) );
     body->SetTransform( body->GetPosition() , angle );
 
     shape.setFillColor( color );
