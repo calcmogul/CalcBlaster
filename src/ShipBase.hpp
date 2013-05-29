@@ -13,7 +13,8 @@
 
 class ShipBase : public Box2DBase {
 public:
-    ShipBase( const sf::Vector2f& position , float fullHealth );
+    // 'pts' is number of points in convex shape
+    ShipBase( const sf::Vector2f& position , unsigned int pts , long long int fullHealth );
     virtual ~ShipBase();
 
     // userData contains special data needed by each function impl
@@ -21,7 +22,7 @@ public:
 
     void setHealth( long long int health );
 
-    long long int getHealth();
+    long long int getHealth() const;
 
     sf::ConvexShape shape;
 

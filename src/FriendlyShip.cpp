@@ -11,7 +11,7 @@
 sf::Texture FriendlyShip::m_shipTexture;
 bool FriendlyShip::m_isLoaded = false;
 
-FriendlyShip::FriendlyShip( const sf::Vector2f& position , float fullHealth ) : ShipBase( position , fullHealth ) {
+FriendlyShip::FriendlyShip( const sf::Vector2f& position , float fullHealth ) : ShipBase( position , 6 , fullHealth ) {
     if ( !m_isLoaded ) {
         sf::Image shipImage;
         if ( !shipImage.loadFromFile( "Resources/GalagaShip.png" ) ) {

@@ -9,7 +9,7 @@
 
 float ShipBase::m_maxSpeed = 30.f;
 
-ShipBase::ShipBase( const sf::Vector2f& position , float fullHealth ) : Box2DBase( &shape , position , b2_dynamicBody ) , shape( 6 ) {
+ShipBase::ShipBase( const sf::Vector2f& position , unsigned int pts , long long int fullHealth ) : Box2DBase( &shape , position , b2_dynamicBody ) , shape( pts ) {
     m_health = fullHealth;
 
     body->SetLinearVelocity( b2Vec2( 0.f , 10.f ) );
@@ -23,6 +23,6 @@ void ShipBase::setHealth( long long int health ) {
     m_health = health;
 }
 
-long long int ShipBase::getHealth() {
+long long int ShipBase::getHealth() const {
     return m_health;
 }

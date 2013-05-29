@@ -1,0 +1,144 @@
+//=============================================================================
+//File Name: Enemy.hpp
+//Description: Handles actions/AI and rendering of enemy formulas
+//Author: Tyler Veness
+//=============================================================================
+
+#include "EnemyFormula.hpp"
+#include "Bullet.hpp"
+#include <SFML/Window/Keyboard.hpp>
+#include <sstream>
+
+bool EnemyFormula::m_isLoaded = false;
+std::vector<EnemyFormula*> EnemyFormula::m_enemyFormulas;
+std::vector<sf::Texture*> EnemyFormula::m_textures;
+
+EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : ShipBase( position , 4 , 1 ) {
+    if ( !m_isLoaded ) {
+        sf::Texture* tempTexture = NULL;
+        sf::Image* tempImage = new sf::Image;
+
+        std::stringstream ss;
+
+        bool stillLoading = true;
+
+        // While there are still functions in the folder
+        for ( unsigned int i = 1 ; stillLoading ; i++ ) {
+            ss.clear();
+            ss.str( "" );
+            ss << "Resources/Functions/" << i << ".png";
+
+            // We need a new texture for each image
+            tempTexture = new sf::Texture;
+            stillLoading = tempImage->loadFromFile( ss.str() );
+
+            if ( stillLoading ) {
+                tempImage->createMaskFromColor( sf::Color( 255 , 255 , 255 ) , 0 );
+
+                tempTexture->loadFromImage( *tempImage );
+            }
+
+            m_textures.push_back( tempTexture );
+        }
+
+        m_isLoaded = true;
+    }
+
+    // If there are no images, exit
+    if ( m_textures.size() == 0 ) {
+        exit( 1 );
+    }
+
+    // Choose a formula at random
+    m_shipTexture = m_textures[rand() % m_textures.size()];
+
+    b2PolygonShape shipRectangle;
+
+    // Store size locally to avoid unnecessary reads from graphics card
+    sf::Vector2u tempSize = m_shipTexture->getSize();
+    sf::Vector2f shipSize( tempSize.x , tempSize.y );
+
+    b2Vec2 shipVertices[4];
+    shipVertices[0].Set( SFMLToBox_x( -shipSize.x / 2.f ) , SFMLToBox_y( shipSize.y / 2.f , shipSize.y ) );
+    shipVertices[1].Set( SFMLToBox_x( shipSize.x / 2.f ) , SFMLToBox_y( shipSize.y / 2.f , shipSize.y ) );
+    shipVertices[2].Set( SFMLToBox_x( shipSize.x / 2.f ) , SFMLToBox_y( -shipSize.y / 2.f , shipSize.y ) );
+    shipVertices[3].Set( SFMLToBox_x( -shipSize.x / 2.f ) , SFMLToBox_y( -shipSize.y / 2.f , shipSize.y ) );
+
+    shipRectangle.Set( shipVertices , 4 );
+
+    // Add the shape to the body.
+    body->CreateFixture( &shipRectangle , 1.f );
+
+    /* ===== Create SFML shape ===== */
+    for ( unsigned int i = 0 ; i < 4 ; i++ ) {
+        shape.setPoint( i , sf::Vector2f( BoxToSFML_x( shipVertices[i].x ) , BoxToSFML_y( shipVertices[i].y ,  m_shipTexture->getSize().y ) ) );
+    }
+    shape.setOrigin( 0 , m_shipTexture->getSize().y );
+
+    shape.setTexture( m_shipTexture );
+    /* ============================= */
+
+    // Stores speed of this formula
+    m_speed = speed;
+
+    // Assign user data
+    m_userData.formulaType = Bullet::infinity; // TODO Read formula types from mapped txt file
+    m_userData.formulaObj = this;
+    body->SetUserData( &m_userData );
+}
+
+EnemyFormula::~EnemyFormula() {
+    std::vector<EnemyFormula*>::iterator index;
+    for ( index = m_enemyFormulas.begin() ; *index != this ; index++ ) {
+        if ( index >= m_enemyFormulas.end() ) {
+            return;
+        }
+    }
+
+    m_enemyFormulas.erase( index );
+}
+
+void EnemyFormula::cleanup() {
+    for ( unsigned int index = m_enemyFormulas.size() ; index > 0 ; index-- ) {
+        delete m_enemyFormulas[0];
+    }
+
+    for ( unsigned int index = m_textures.size() ; index > 0 ; index-- ) {
+        delete m_textures[0]; // FIXME Texture cleanup
+    }
+}
+
+void EnemyFormula::drawAll( const ShipBase& ship , sf::RenderTarget& target , sf::RenderStates states ) {
+    for ( unsigned int index = 0 ; index < m_enemyFormulas.size() ; index++ ) {
+        // Redraw enemy ship
+        target.draw( *m_enemyFormulas[index] );
+    }
+}
+
+void EnemyFormula::syncObjects( const sf::Window& referTo ) {
+    for ( unsigned int index = 0 ; index < m_enemyFormulas.size() ; index++ ) {
+        m_enemyFormulas[index]->syncObject( referTo );
+    }
+}
+
+void EnemyFormula::add( const sf::Vector2f& position , b2Vec2 speed ) {
+    m_enemyFormulas.push_back( new EnemyFormula( position , speed ) );
+}
+
+void EnemyFormula::addBullet( unsigned int index , const sf::Window& referTo ) {
+    Bullet::add( *m_enemyFormulas[index] , referTo , sf::Color( 0 , 0 , 255 ) , Bullet::constant );
+}
+
+void EnemyFormula::controlEnemies( void* userData ) {
+    for ( unsigned int index = 0 ; index < m_enemyFormulas.size() ; index++ ) {
+        m_enemyFormulas[index]->controlShip( userData );
+    }
+}
+
+void EnemyFormula::controlShip( void* userData ) {
+    // Adjust angle towards player
+    body->SetTransform( body->GetPosition() , 0.f );
+
+    // Adjust velocity towards player
+    body->SetLinearVelocity( m_speed );
+}

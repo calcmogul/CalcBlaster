@@ -5,7 +5,6 @@
 //=============================================================================
 
 #include <SFML/Audio/Music.hpp>
-#include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Sprite.hpp>
@@ -16,8 +15,9 @@
 #include <SFML/System/Sleep.hpp>
 #include <cmath>
 
+#include "UIFont.hpp"
 #include "FriendlyShip.hpp"
-#include "EnemyShip.hpp"
+#include "EnemyFormula.hpp"
 #include "Bullet.hpp"
 
 /* FIXME: Hitting Alt or F10 pauses game; hitting any key that has an ASCII
@@ -67,28 +67,20 @@ int main() {
     healthSprite.setPosition( 0.f , 0.f );
     /* ==================================== */
 
-#if 0
-    EnemyShip::add( sf::Vector2f( -100.f , 200.f ) , 100.f );
-    EnemyShip::add( sf::Vector2f( 100.f , 200.f ) , 100.f );
-    EnemyShip::add( sf::Vector2f( -100.f , 500.f ) , 100.f );
-    EnemyShip::add( sf::Vector2f( 100.f , 500.f ) , 100.f );
-    EnemyShip::add( sf::Vector2f( 200.f , 200.f ) , 100.f );
-#endif
-
     sf::Vector2f winSize;
     winSize.x = mainWin.getSize().x;
     winSize.y = mainWin.getSize().y;
 
     /* ===== Create background body ===== */
     // Offset of Box2D world origin from top-left corner of window
-    sf::Vector2f worldOrgn( 0.f , 0.f );
-    //sf::Vector2f worldOrgn( winSize.x , winSize.y );
+    //sf::Vector2f worldOrgn( 0.f , 0.f );
+    sf::Vector2f worldOrgn( winSize.x , winSize.y );
 
     // Used to make background move past at 10 m/s
     sf::RectangleShape backShape( sf::Vector2f( 0.f , 0.f ) );
     backShape.setFillColor( sf::Color( 0.f , 0.f , 0.f ) );
 
-    Box2DBase backBody( &backShape , sf::Vector2f( 0.f , 0.f ) , b2_kinematicBody );
+    Box2DBase backBody( &backShape , sf::Vector2f( 0.f , 0.f ) , b2_dynamicBody );
 
     b2PolygonShape box;
 
@@ -139,13 +131,7 @@ int main() {
     sf::RectangleShape pauseRect( sf::Vector2f( 400 , 300 ) );
     pauseRect.setFillColor( sf::Color( 90 , 90 , 90 , 170 ) );
 
-    sf::Font pauseFont;
-
-    if ( !pauseFont.loadFromFile( "Resources/arial.ttf" ) ) {
-        exit( 1 );
-    }
-
-    sf::Text pauseText( "PAUSED" , pauseFont , 50 );
+    sf::Text pauseText( "PAUSED" , UIFont::getInstance()->arial() , 50 );
     pauseText.setPosition( sf::Vector2f( (pauseRect.getSize().x - pauseText.findCharacterPos( 7 ).x) / 2.f , (pauseRect.getSize().y - pauseText.getCharacterSize()) / 2.f ) );
     pauseText.setColor( sf::Color( 255 , 255 , 255 ) );
 
@@ -163,35 +149,20 @@ int main() {
     // second (30Hz) and 10 iterations. This provides a high quality simulation
     // in most game scenarios.
     float32 timeStep = 1.0f / 30.0f;
-    int32 velocityIterations = 16; //8
-    int32 positionIterations = 6; //3
+    int32 velocityIterations = 64; //8
+    int32 positionIterations = 24; //3
 
     mainWin.setView( sf::View( sf::FloatRect( backBody.drawShape->getPosition().x - mainWin.getSize().x / 2 , backBody.drawShape->getPosition().y - mainWin.getSize().y / 2 , mainWin.getSize().x , mainWin.getSize().y ) ) );
 
     sf::Event event;
     sf::Clock shootClock;
 
+    sf::Clock enemySpawnClock;
+
     bool isPaused = false;
 
     //backgroundMusic.play();
     while ( mainWin.isOpen() ) {
-        while ( mainWin.pollEvent( event ) ) {
-            if ( event.type == sf::Event::Closed ) {
-                mainWin.close();
-            }
-            else if ( event.type == sf::Event::Resized ) {
-                backgroundSprite.setTextureRect( sf::IntRect( -backSize.x , -backSize.y , mainWin.getSize().x + 2.f * backSize.x , mainWin.getSize().y + 2.f * backSize.y ) );
-
-                HUDBackground.setScale( mainWin.getSize().x / 50.f , HUDBackground.getScale().y );
-            }
-
-            else if ( event.type == sf::Event::KeyReleased ) {
-                if ( event.key.code == sf::Keyboard::Return ) {
-                    isPaused = !isPaused;
-                }
-            }
-        }
-
         if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Escape ) ) {
             mainWin.close();
         }
@@ -204,15 +175,14 @@ int main() {
 
             myShip.syncObject( mainWin );
             backBody.syncObject( mainWin );
-            EnemyShip::syncObjects( mainWin );
+            EnemyFormula::syncObjects( mainWin );
             Bullet::syncObjects( mainWin );
 
             Bullet::checkCollisions( myShip , mainWin );
 
             myShip.controlShip( NULL );
-            EnemyShip::controlShips( &myShip );
+            EnemyFormula::controlEnemies( &myShip );
 
-#if 1
             /* ===== Keep main ship within boundaries of window ==== */
             sf::Vector2f myPos = myShip.drawShape->getPosition();
             sf::View myView = mainWin.getView();
@@ -240,17 +210,31 @@ int main() {
             // Apply limits
             myShip.body->SetTransform( SFMLToBox( myPos.x , myPos.y , mainWin.getSize().y ) , myShip.body->GetAngle() );
             /* ===================================================== */
-#endif
 
-            if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Space ) && shootClock.getElapsedTime().asMilliseconds() > 500 ) {
-                Bullet::add( myShip , mainWin , sf::Color( 0 , 0 , 255 ) );
+            if ( shootClock.getElapsedTime().asMilliseconds() > 250 ) {
+                if ( sf::Keyboard::isKeyPressed( sf::Keyboard::J ) ) {
+                    Bullet::add( myShip , mainWin , sf::Color( 255 , 0 , 0 ) , Bullet::infinity );
 
-                myShip.setHealth( myShip.getHealth() - 50 );
-
-                for ( unsigned int index = 0 ; index < EnemyShip::size() ; index++ ) {
-                    EnemyShip::addBullet( index , mainWin );
+                    shootClock.restart();
                 }
-                shootClock.restart();
+
+                else if ( sf::Keyboard::isKeyPressed( sf::Keyboard::K ) ) {
+                    Bullet::add( myShip , mainWin , sf::Color( 0 , 0 , 255 ) , Bullet::constant );
+
+                    shootClock.restart();
+                }
+
+                else if ( sf::Keyboard::isKeyPressed( sf::Keyboard::L ) ) {
+                    Bullet::add( myShip , mainWin , sf::Color( 0 , 0 , 0 ) , Bullet::zero );
+
+                    shootClock.restart();
+                }
+            }
+
+            if ( enemySpawnClock.getElapsedTime().asMilliseconds() > 2000 ) {
+                EnemyFormula::add( sf::Vector2f( rand() % mainWin.getSize().x + mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f , mainWin.getView().getCenter().y - mainWin.getSize().y / 2.f ) , b2Vec2( 0.f , 7.f ) );
+
+                enemySpawnClock.restart();
             }
 
             /* ===== Handle background texture shifting with ship ===== */
@@ -285,7 +269,7 @@ int main() {
 
         mainWin.draw( backgroundSprite );
         mainWin.draw( *(backBody.drawShape) );
-        EnemyShip::drawAll( myShip , mainWin );
+        EnemyFormula::drawAll( myShip , mainWin );
         mainWin.draw( myShip );
         Bullet::drawAll( mainWin );
 
@@ -301,9 +285,43 @@ int main() {
         mainWin.display();
 
         mainWin.setView( sf::View( sf::FloatRect( backBody.drawShape->getPosition().x - mainWin.getSize().x / 2 , backBody.drawShape->getPosition().y - mainWin.getSize().y / 2 , mainWin.getSize().x , mainWin.getSize().y ) ) );
+
+        while ( mainWin.pollEvent( event ) ) {
+            if ( event.type == sf::Event::Closed ) {
+                mainWin.close();
+            }
+            else if ( event.type == sf::Event::Resized ) {
+                backgroundSprite.setTextureRect( sf::IntRect( -backSize.x , -backSize.y , mainWin.getSize().x + 2.f * backSize.x , mainWin.getSize().y + 2.f * backSize.y ) );
+
+                HUDBackground.setScale( mainWin.getSize().x / 50.f , HUDBackground.getScale().y );
+            }
+
+            else if ( event.type == sf::Event::KeyReleased ) {
+                if ( event.key.code == sf::Keyboard::Return ) {
+                    isPaused = !isPaused;
+
+                    // Show mouse cursor when paused
+                    mainWin.setMouseCursorVisible( isPaused );
+                }
+            }
+
+            else if ( event.type == sf::Event::LostFocus ) {
+                isPaused = true;
+
+                // Show mouse cursor when paused
+                mainWin.setMouseCursorVisible( isPaused );
+            }
+
+            else if ( event.type == sf::Event::GainedFocus ) {
+                isPaused = false;
+
+                // Show mouse cursor when paused
+                mainWin.setMouseCursorVisible( isPaused );
+            }
+        }
     }
 
-    EnemyShip::cleanup();
+    EnemyFormula::cleanup();
     Bullet::cleanup();
 
     return 0;
