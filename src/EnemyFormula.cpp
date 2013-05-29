@@ -7,11 +7,14 @@
 #include "EnemyFormula.hpp"
 #include "Bullet.hpp"
 #include <SFML/Window/Keyboard.hpp>
+#include <fstream>
 #include <sstream>
+#include <iostream>
 
 bool EnemyFormula::m_isLoaded = false;
 std::vector<EnemyFormula*> EnemyFormula::m_enemyFormulas;
 std::vector<sf::Texture*> EnemyFormula::m_textures;
+std::map<std::string , std::string> EnemyFormula::m_limits;
 
 EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : ShipBase( position , 4 , 1 ) {
     if ( !m_isLoaded ) {
@@ -41,6 +44,34 @@ EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : Ship
             m_textures.push_back( tempTexture );
         }
 
+        // Load limits for each file
+        std::string line;
+        unsigned int colonPos = 0;
+        std::ifstream limitsFile( "Resources/Functions/limits.txt" );
+        if ( limitsFile.is_open() ) {
+            while ( !limitsFile.eof() ) {
+                line.clear();
+                std::getline( limitsFile , line );
+
+                colonPos = line.find( ":" );
+
+                /* Don't create an entry if there was no colon or there are no
+                 * characters after it
+                 */
+                if ( colonPos < line.length() - 1 ) {
+                    // Find next non-space character
+                    unsigned int typeStart = colonPos + 1;
+                    while ( line[typeStart] == ' ' && typeStart < line.length() ) {
+                        typeStart++;
+                    }
+
+                    // Extract type
+                    m_limits[line.substr( 0 , colonPos )] = line.substr( typeStart , line.length() );
+                }
+            }
+        }
+
+
         m_isLoaded = true;
     }
 
@@ -50,7 +81,8 @@ EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : Ship
     }
 
     // Choose a formula at random
-    m_shipTexture = m_textures[rand() % m_textures.size()];
+    unsigned int imgPos = rand() % m_textures.size();
+    m_shipTexture = m_textures[imgPos];
 
     b2PolygonShape shipRectangle;
 
@@ -81,9 +113,30 @@ EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : Ship
     // Stores speed of this formula
     m_speed = speed;
 
-    // Assign user data
-    m_userData.formulaType = Bullet::infinity; // TODO Read formula types from mapped txt file
+    // Find formula type string
+    std::stringstream ss;
+    ss << imgPos << ".png";
+    std::string typeStr = m_limits[ss.str()];
+
+    // Assign formula type corresponding to string to user data
+    if ( typeStr == std::string("zero") ) {
+        m_userData.formulaType = Bullet::zero;
+    }
+    else if ( typeStr == std::string("constant") ) {
+        m_userData.formulaType = Bullet::constant;
+    }
+    else if ( typeStr == std::string("infinity") ) {
+        m_userData.formulaType = Bullet::infinity;
+    }
+    else {
+        std::cout << "Unknown type: \"" << typeStr << "\"\n";
+        m_userData.formulaType = Bullet::infinity;
+    }
+
+    // Assign formula object pointer to user data
     m_userData.formulaObj = this;
+
+    // Assign user data to Box2D body
     body->SetUserData( &m_userData );
 }
 

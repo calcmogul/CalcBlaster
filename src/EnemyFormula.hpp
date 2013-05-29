@@ -10,6 +10,8 @@
 #include "ShipBase.hpp"
 #include "Bullet.hpp"
 #include <vector>
+#include <map>
+#include <string>
 
 class EnemyFormula;
 
@@ -41,6 +43,8 @@ private:
     static std::vector<EnemyFormula*> m_enemyFormulas;
 
     static std::vector<sf::Texture*> m_textures;
+
+    static std::map<std::string , std::string> m_limits;
 
     sf::Texture* m_shipTexture;
 

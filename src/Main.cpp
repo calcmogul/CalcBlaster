@@ -80,6 +80,7 @@ int main() {
     sf::RectangleShape backShape( sf::Vector2f( 0.f , 0.f ) );
     backShape.setFillColor( sf::Color( 0.f , 0.f , 0.f ) );
 
+    // TODO Object displays in wrong spot
     Box2DBase backBody( &backShape , sf::Vector2f( 0.f , 0.f ) , b2_dynamicBody );
 
     b2PolygonShape box;
@@ -110,7 +111,7 @@ int main() {
     backFixture.density = 0.f;
 
     // Add the shape to the body.
-    backBody.body->CreateFixture( &backFixture );
+    //backBody.body->CreateFixture( &backFixture ); // FIXME
 
     b2MassData backMass;
     backBody.body->GetMassData( &backMass );
@@ -268,7 +269,7 @@ int main() {
         mainWin.clear( sf::Color( 10 , 10 , 10 ) );
 
         mainWin.draw( backgroundSprite );
-        mainWin.draw( *(backBody.drawShape) );
+        //mainWin.draw( *(backBody.drawShape) ); // FIXME window edge collision
         EnemyFormula::drawAll( myShip , mainWin );
         mainWin.draw( myShip );
         Bullet::drawAll( mainWin );

@@ -7,7 +7,6 @@
 #include "Bullet.hpp"
 #include "ShipBase.hpp"
 #include "EnemyFormula.hpp"
-#include <iostream> // FIXME Remove me
 
 std::vector<Bullet*> Bullet::m_bullets;
 
@@ -72,15 +71,11 @@ void Bullet::checkCollisions( ShipBase& ship , const sf::RenderWindow& referTo )
         while ( contact != NULL ) {
             // Don't let bullet hit its source body
             if ( bullet->getSourceBody() != contact->other ) {
-                delete bullet; // bullet hit something so delete it
-
                 /* Act upon 'other' object if it's an EnemyFormula
                  * (Only that class has a non-NULL userData pointer)
                  */
                 if ( contact->other->GetUserData() != NULL ) {
                     userData* tempData = static_cast<userData*>( contact->other->GetUserData() );
-
-                    std::cout << tempData->formulaType << " =?= " << bullet->getType() << "\n";
 
                     // If type of formula matches type of bullet
                     if ( tempData->formulaType == bullet->getType() ) {
@@ -100,6 +95,8 @@ void Bullet::checkCollisions( ShipBase& ship , const sf::RenderWindow& referTo )
                         }
                     }
                 }
+
+                delete bullet; // bullet hit something so delete it
 
                 // Make sure loop terminates
                 contact = NULL;
@@ -126,7 +123,6 @@ Bullet::Bullet( const ShipBase& ship , const sf::Window& referTo , const sf::Col
         shape( sf::Vector2f( 2.f , 10.f ) ) ,
         m_sourceBody( ship.body ) ,
         m_type( type ) {
-    std::cout << "type=" << m_type << "\n";
     float angle = ship.body->GetAngle();
 
     // Define the ground box shape.
