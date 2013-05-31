@@ -31,8 +31,8 @@ public:
             );
     virtual ~Box2DBase();
 
-    void syncObject( const sf::Window& referTo ); // syncs Box2D body attributes with SFML shape
-    void draw( sf::RenderTarget& target , sf::RenderStates states = sf::RenderStates::Default ) const;
+    virtual void syncObject( const sf::Window& referTo ); // syncs Box2D body attributes with SFML shape
+    virtual void draw( sf::RenderTarget& target , sf::RenderStates states = sf::RenderStates::Default ) const;
 
     static b2World world;
 

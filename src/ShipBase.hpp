@@ -24,11 +24,17 @@ public:
 
     long long int getHealth() const;
 
+    void setScore( unsigned long long int score );
+
+    unsigned long long int getScore() const;
+
     sf::ConvexShape shape;
 
 protected:
     // 100 per ship image
     long long int m_health;
+
+    long long unsigned int m_score;
 
     static float m_maxSpeed;
     b2Vec2 m_shipSpeed;

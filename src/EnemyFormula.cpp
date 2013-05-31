@@ -25,25 +25,6 @@ EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : Ship
 
         bool stillLoading = true;
 
-        // While there are still functions in the folder
-        for ( unsigned int i = 1 ; stillLoading ; i++ ) {
-            ss.clear();
-            ss.str( "" );
-            ss << "Resources/Functions/" << i << ".png";
-
-            // We need a new texture for each image
-            tempTexture = new sf::Texture;
-            stillLoading = tempImage->loadFromFile( ss.str() );
-
-            if ( stillLoading ) {
-                tempImage->createMaskFromColor( sf::Color( 255 , 255 , 255 ) , 0 );
-
-                tempTexture->loadFromImage( *tempImage );
-            }
-
-            m_textures.push_back( tempTexture );
-        }
-
         // Load limits for each file
         std::string line;
         unsigned int colonPos = 0;
@@ -71,6 +52,29 @@ EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : Ship
             }
         }
 
+        // While there are still functions in the folder, load them
+        for ( unsigned int i = 1 ; stillLoading ; i++ ) {
+            ss.clear();
+            ss.str( "" );
+            ss << "Resources/Functions/" << i << ".png";
+
+            // We need a new texture for each image
+            tempTexture = new sf::Texture;
+            stillLoading = tempImage->loadFromFile( ss.str() );
+
+            if ( stillLoading ) {
+                tempImage->createMaskFromColor( sf::Color( 255 , 255 , 255 ) , 0 );
+
+                tempTexture->loadFromImage( *tempImage );
+                m_textures.push_back( tempTexture );
+            }
+            /* Make sure to delete the last texture here because it won't be
+             * referenced elsewhere due to the loading failure
+             */
+            else {
+                delete tempTexture;
+            }
+        }
 
         m_isLoaded = true;
     }
@@ -115,7 +119,7 @@ EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : Ship
 
     // Find formula type string
     std::stringstream ss;
-    ss << imgPos << ".png";
+    ss << imgPos + 1 << ".png";
     std::string typeStr = m_limits[ss.str()];
 
     // Assign formula type corresponding to string to user data
@@ -153,17 +157,22 @@ EnemyFormula::~EnemyFormula() {
 
 void EnemyFormula::cleanup() {
     for ( unsigned int index = m_enemyFormulas.size() ; index > 0 ; index-- ) {
+        // The object's destructor will remove the object from the array
         delete m_enemyFormulas[0];
     }
 
     for ( unsigned int index = m_textures.size() ; index > 0 ; index-- ) {
-        delete m_textures[0]; // FIXME Texture cleanup
+        /* We must remove the object from the array explicitly because the
+         * sf::Texture destructor won't do it for us
+         */
+        delete m_textures[0];
+        m_textures.erase( m_textures.begin() );
     }
 }
 
 void EnemyFormula::drawAll( const ShipBase& ship , sf::RenderTarget& target , sf::RenderStates states ) {
     for ( unsigned int index = 0 ; index < m_enemyFormulas.size() ; index++ ) {
-        // Redraw enemy ship
+        // Redraw formula
         target.draw( *m_enemyFormulas[index] );
     }
 }
@@ -189,9 +198,6 @@ void EnemyFormula::controlEnemies( void* userData ) {
 }
 
 void EnemyFormula::controlShip( void* userData ) {
-    // Adjust angle towards player
-    body->SetTransform( body->GetPosition() , 0.f );
-
-    // Adjust velocity towards player
+    // Adjust velocity to one given upon construction
     body->SetLinearVelocity( m_speed );
 }

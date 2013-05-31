@@ -59,26 +59,26 @@ FriendlyShip::~FriendlyShip() {
 void FriendlyShip::controlShip( void* userData ) {
 #if 1
     // Sets base velocity to forward and current body angle to straight
-    body->SetLinearVelocity( b2Vec2( 0.f , 10.f ) );
+    body->SetLinearVelocity( b2Vec2( 0.f , 2.f ) );
     body->SetTransform( body->GetPosition() , 0.f );
 
     // Holds current velocity
     b2Vec2 curVel = body->GetLinearVelocity();
 
     if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Left ) || sf::Keyboard::isKeyPressed( sf::Keyboard::A ) ) {
-        curVel += b2Vec2( -7.f , 0.f );
+        curVel += b2Vec2( -6.f , 0.f );
     }
 
     if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Right ) || sf::Keyboard::isKeyPressed( sf::Keyboard::D ) ) {
-        curVel += b2Vec2( 7.f , 0.f );
+        curVel += b2Vec2( 6.f , 0.f );
     }
 
     if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Up ) || sf::Keyboard::isKeyPressed( sf::Keyboard::W ) ) {
-        curVel += b2Vec2( 0.f , 7.f );
+        curVel += b2Vec2( 0.f , 6.f );
     }
 
     if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Down ) || sf::Keyboard::isKeyPressed( sf::Keyboard::S ) ) {
-        curVel += b2Vec2( 0.f , -7.f );
+        curVel += b2Vec2( 0.f , -6.f );
     }
 
     // Set resultant velocity

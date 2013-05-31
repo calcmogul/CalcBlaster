@@ -4,7 +4,6 @@
 //Author: Tyler Veness
 //=============================================================================
 
-#include <SFML/Audio/Music.hpp>
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Sprite.hpp>
@@ -13,20 +12,22 @@
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/System/Sleep.hpp>
+#include <sstream>
 #include <cmath>
+#include <iostream> // TODO Remove me
 
 #include "UIFont.hpp"
+#include "Sounds.hpp"
 #include "FriendlyShip.hpp"
 #include "EnemyFormula.hpp"
 #include "Bullet.hpp"
 
-/* FIXME: Hitting Alt or F10 pauses game; hitting any key that has an ASCII
- *        equivalent resumes it. The window loses focus during this event and
- *        regains it while resuming.
- */
+const float DISP_TIME = 2.f;
+const float FADE_TIME = 2.f;
 
 int main() {
-    sf::RenderWindow mainWin( sf::VideoMode( 800 , 600 )  , "Calc Blaster" , sf::Style::Resize | sf::Style::Close );
+    // TODO Fix bullet spawning behind ship to make window resizeable
+    sf::RenderWindow mainWin( sf::VideoMode( 800 , 600 )  , "Calc Blaster" , sf::Style::Close );
     mainWin.setMouseCursorVisible( false );
     mainWin.setVerticalSyncEnabled( true );
 
@@ -50,12 +51,66 @@ int main() {
 
     sf::Sprite backgroundSprite( backgroundTexture );
     backgroundSprite.setTextureRect( sf::IntRect( -backSize.x , -backSize.y , mainWin.getSize().x + 2 * backSize.x , mainWin.getSize().y + 2 * backSize.y ) );
-    backgroundSprite.setPosition( 0.f , 0.f );
+
+    /* ===== Create title screen ===== */
+    // Title
+    sf::Image titleImg;
+    if ( !titleImg.loadFromFile( "Resources/CalcBlasterTitle.png" ) ) {
+        exit( 1 );
+    }
+
+    sf::Texture titleTexture;
+    titleTexture.loadFromImage( titleImg );
+
+    sf::Sprite titleSpr( titleTexture );
+    titleSpr.setPosition( sf::Vector2f( mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f , mainWin.getView().getCenter().y - mainWin.getSize().y / 2.f ) );
+
+    // Created by
+    sf::Image createdImg;
+    if ( !createdImg.loadFromFile( "Resources/CreatedBy.png" ) ) {
+        exit( 1 );
+    }
+
+    sf::Texture createdTexture;
+    createdTexture.loadFromImage( createdImg );
+
+    sf::Sprite createdSpr( createdTexture );
+    createdSpr.setPosition( sf::Vector2f( mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f , mainWin.getView().getCenter().y - mainWin.getSize().y / 2.f ) );
+
+    /* ===== */
+    sf::Color pxlColor;
+
+    for ( unsigned int y = 0 ; y < titleImg.getSize().y ; y++ ) {
+        for ( unsigned int x = 0 ; x < titleImg.getSize().x ; x++ ) {
+            pxlColor = titleImg.getPixel( x , y );
+            pxlColor.a = 0;
+            titleImg.setPixel( x , y , pxlColor );
+        }
+    }
+
+    titleTexture.update( titleImg );
+
+    for ( unsigned int y = 0 ; y < createdImg.getSize().y ; y++ ) {
+        for ( unsigned int x = 0 ; x < createdImg.getSize().x ; x++ ) {
+            pxlColor = createdImg.getPixel( x , y );
+            pxlColor.a = 0;
+            createdImg.setPixel( x , y , pxlColor );
+        }
+    }
+
+    createdTexture.update( createdImg );
+    /* ===== */
+
+    // Times
+    sf::Clock titleTime;
+    sf::Clock diffTime;
+    /* =============================== */
 
     sf::RectangleShape HUDBackground( sf::Vector2f( mainWin.getSize().x , 45.f ) );
     HUDBackground.setFillColor( sf::Color( 90 , 90 , 90 , 170 ) );
 
-    FriendlyShip myShip( sf::Vector2f( 0.f , 200.f ) , 300.f );
+    FriendlyShip myShip( sf::Vector2f( 0.f , 200.f ) , 600.f );
+    myShip.syncObject( mainWin );
 
     /* ===== Create health bar sprite ===== */
     sf::Texture healthTexture;
@@ -66,6 +121,11 @@ int main() {
     healthSprite.setTextureRect( sf::IntRect( 0 , 0 , healthTexture.getSize().x * myShip.getHealth() / 100.f , healthTexture.getSize().y ) );
     healthSprite.setPosition( 0.f , 0.f );
     /* ==================================== */
+
+    // Create text that holds score
+    sf::Text scoreText( "Score: 0" , UIFont::getInstance()->technical() , 18 );
+    scoreText.setPosition( 0.f , 0.f );
+    unsigned long long int scoreCount = 0;
 
     sf::Vector2f winSize;
     winSize.x = mainWin.getSize().x;
@@ -111,7 +171,7 @@ int main() {
     backFixture.density = 0.f;
 
     // Add the shape to the body.
-    //backBody.body->CreateFixture( &backFixture ); // FIXME
+    //backBody.body->CreateFixture( &backFixture ); // FIXME Fixture isn't in right spot
 
     b2MassData backMass;
     backBody.body->GetMassData( &backMass );
@@ -122,8 +182,31 @@ int main() {
     backShape.setOrigin( backShape.getSize() / 2.f );
 
     // Make edge body move at 10 m/s up
-    backBody.body->SetLinearVelocity( b2Vec2( 0.f , 10.f ) );
+    backBody.body->SetLinearVelocity( b2Vec2( 0.f , 2.f ) );
     /* ================================== */
+
+    // Adjust background at beginning of simulation
+    /* ===== Handle background texture shifting with ship ===== */
+    // Move background left
+    if ( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x < mainWin.getSize().x / 2 + backSize.x ) {
+        backgroundSprite.setPosition( backgroundSprite.getPosition().x - backSize.x * ( std::ceil( std::fabs( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x - mainWin.getSize().x / 2 - backSize.x ) / backSize.x ) ) , backgroundSprite.getPosition().y );
+    }
+
+    // Move background right
+    if ( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x > mainWin.getSize().x / 2 + backSize.x ) {
+        backgroundSprite.setPosition( backgroundSprite.getPosition().x + backSize.x * ( std::ceil( std::fabs( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x - mainWin.getSize().x / 2 - backSize.x ) / backSize.x ) ) , backgroundSprite.getPosition().y );
+    }
+
+    // Move background up
+    if ( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y < mainWin.getSize().y / 2 + backSize.y ) {
+        backgroundSprite.setPosition( backgroundSprite.getPosition().x , backgroundSprite.getPosition().y - backSize.y * ( std::ceil( std::fabs( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y - mainWin.getSize().y / 2 - backSize.y ) / backSize.y ) ) );
+    }
+
+    // Move background down
+    if ( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y > mainWin.getSize().y / 2 + backSize.y ) {
+        backgroundSprite.setPosition( backgroundSprite.getPosition().x , backgroundSprite.getPosition().y + backSize.y * ( std::ceil( std::fabs( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y - mainWin.getSize().y / 2 - backSize.y ) / backSize.y ) ) );
+    }
+    /* ======================================================== */
 
     /* ===== Create pause graphic ===== */
     sf::RenderTexture pauseTexture;
@@ -132,7 +215,7 @@ int main() {
     sf::RectangleShape pauseRect( sf::Vector2f( 400 , 300 ) );
     pauseRect.setFillColor( sf::Color( 90 , 90 , 90 , 170 ) );
 
-    sf::Text pauseText( "PAUSED" , UIFont::getInstance()->arial() , 50 );
+    sf::Text pauseText( "PAUSED" , UIFont::getInstance()->technical() , 50 );
     pauseText.setPosition( sf::Vector2f( (pauseRect.getSize().x - pauseText.findCharacterPos( 7 ).x) / 2.f , (pauseRect.getSize().y - pauseText.getCharacterSize()) / 2.f ) );
     pauseText.setColor( sf::Color( 255 , 255 , 255 ) );
 
@@ -162,14 +245,16 @@ int main() {
 
     bool isPaused = false;
 
-    //backgroundMusic.play();
+    Sounds::getInstance()->background().play();
     while ( mainWin.isOpen() ) {
         if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Escape ) ) {
             mainWin.close();
         }
 
-        // If game isn't paused and the frame rate is at or below 30Hz
-        if ( !isPaused && simTime.getElapsedTime().asSeconds() > 1.f / 30.f ) {
+        /* If game isn't paused, the frame rate is at or below 30Hz, and the
+         * player is still alive
+         */
+        if ( titleTime.getElapsedTime().asSeconds() > (4 * FADE_TIME + 2 * DISP_TIME) && !isPaused && simTime.getElapsedTime().asSeconds() > 1.f / 30.f && myShip.getHealth() > 0 ) {
             // Instruct the world to perform a single step of simulation.
             // It is generally best to keep the time step and iterations fixed.
             Box2DBase::world.Step( timeStep , velocityIterations , positionIterations );
@@ -182,7 +267,7 @@ int main() {
             Bullet::checkCollisions( myShip , mainWin );
 
             myShip.controlShip( NULL );
-            EnemyFormula::controlEnemies( &myShip );
+            EnemyFormula::controlEnemies( NULL );
 
             /* ===== Keep main ship within boundaries of window ==== */
             sf::Vector2f myPos = myShip.drawShape->getPosition();
@@ -214,26 +299,32 @@ int main() {
 
             if ( shootClock.getElapsedTime().asMilliseconds() > 250 ) {
                 if ( sf::Keyboard::isKeyPressed( sf::Keyboard::J ) ) {
+                    Sounds::getInstance()->shoot().play();
                     Bullet::add( myShip , mainWin , sf::Color( 255 , 0 , 0 ) , Bullet::infinity );
 
                     shootClock.restart();
                 }
 
                 else if ( sf::Keyboard::isKeyPressed( sf::Keyboard::K ) ) {
+                    Sounds::getInstance()->shoot().play();
                     Bullet::add( myShip , mainWin , sf::Color( 0 , 0 , 255 ) , Bullet::constant );
 
                     shootClock.restart();
                 }
 
                 else if ( sf::Keyboard::isKeyPressed( sf::Keyboard::L ) ) {
+                    Sounds::getInstance()->shoot().play();
                     Bullet::add( myShip , mainWin , sf::Color( 0 , 0 , 0 ) , Bullet::zero );
+                    Bullet::syncObjects( mainWin );
 
                     shootClock.restart();
                 }
             }
 
             if ( enemySpawnClock.getElapsedTime().asMilliseconds() > 2000 ) {
-                EnemyFormula::add( sf::Vector2f( rand() % mainWin.getSize().x + mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f , mainWin.getView().getCenter().y - mainWin.getSize().y / 2.f ) , b2Vec2( 0.f , 7.f ) );
+                // FIXME Use more exact method of limiting bounds of rand()
+                EnemyFormula::add( sf::Vector2f( 90 + rand() % (mainWin.getSize().x - 180) + mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f , mainWin.getView().getCenter().y - mainWin.getSize().y / 2.f ) , b2Vec2( 0.f , 0.f ) );
+                EnemyFormula::syncObjects( mainWin );
 
                 enemySpawnClock.restart();
             }
@@ -262,9 +353,24 @@ int main() {
 
             healthSprite.setTextureRect( sf::IntRect( 0 , 0 , healthTexture.getSize().x * myShip.getHealth() / 100.f , healthTexture.getSize().y ) );
         }
+        // If player is dead, show the high scores
+        else if ( myShip.getHealth() == 0 ) {
+            // TODO Create high scores table and save it to a file
+        }
 
         HUDBackground.setPosition( mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f , mainWin.getView().getCenter().y + mainWin.getSize().y / 2.f - HUDBackground.getSize().y );
         healthSprite.setPosition( mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f + 6.f , mainWin.getView().getCenter().y + mainWin.getSize().y / 2.f + 6.f - HUDBackground.getSize().y );
+
+        // Update score in text if needed
+        if ( myShip.getScore() != scoreCount ) {
+            scoreCount = myShip.getScore();
+
+            std::stringstream ss;
+            ss << "Score: " << scoreCount;
+            scoreText.setString( ss.str() );
+        }
+
+        scoreText.setPosition( mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f + mainWin.getSize().x - (scoreText.findCharacterPos( scoreText.getString().getSize() ).x - scoreText.getPosition().x) - 20.f , mainWin.getView().getCenter().y + mainWin.getSize().y / 2.f - HUDBackground.getSize().y / 2.f - scoreText.getCharacterSize() / 2.f );
 
         mainWin.clear( sf::Color( 10 , 10 , 10 ) );
 
@@ -276,6 +382,122 @@ int main() {
 
         mainWin.draw( HUDBackground );
         mainWin.draw( healthSprite );
+        mainWin.draw( scoreText );
+
+        static unsigned int titlePart = 0;
+        if ( titlePart < 5 ) {
+            float totalSecs = titleTime.getElapsedTime().asSeconds();
+            float diffSecs = diffTime.getElapsedTime().asSeconds();
+
+            titleSpr.setPosition( sf::Vector2f( mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f , mainWin.getView().getCenter().y - mainWin.getSize().y / 2.f ) );
+            createdSpr.setPosition( sf::Vector2f( mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f , mainWin.getView().getCenter().y - mainWin.getSize().y / 2.f ) );
+
+            // Finish fade title in
+            if ( titlePart == 0 && totalSecs > FADE_TIME ) {
+                titlePart++;
+                diffTime.restart();
+            }
+
+            // Finish title display
+            else if ( titlePart == 1 && totalSecs > FADE_TIME + DISP_TIME ) {
+                titlePart++;
+                diffTime.restart();
+            }
+
+            // Finish fade title out and fade createdBy in
+            else if ( titlePart == 2 && totalSecs > FADE_TIME + DISP_TIME + FADE_TIME ) {
+                titlePart++;
+                diffTime.restart();
+            }
+
+            // Finish createdBy display
+            else if ( titlePart == 3 && totalSecs > FADE_TIME + DISP_TIME + FADE_TIME + DISP_TIME ) {
+                titlePart++;
+                diffTime.restart();
+            }
+
+            // Finish fade createdBy out
+            else if ( titlePart == 4 && totalSecs > FADE_TIME + DISP_TIME + FADE_TIME + DISP_TIME + FADE_TIME ) {
+                titlePart++;
+                diffTime.restart();
+            }
+
+            // Fade title in
+            if ( titlePart == 0 ) {
+                sf::Color pxlColor;
+
+                for ( unsigned int y = 0 ; y < titleImg.getSize().y ; y++ ) {
+                    for ( unsigned int x = 0 ; x < titleImg.getSize().x ; x++ ) {
+                        pxlColor = titleImg.getPixel( x , y );
+                        pxlColor.a = 255 - 255 * (FADE_TIME - diffSecs) / FADE_TIME;
+                        titleImg.setPixel( x , y , pxlColor );
+                    }
+                }
+
+                titleTexture.update( titleImg );
+            }
+
+            // Fade title out and fade createdBy in
+            if ( titlePart == 2 ) {
+                sf::Color pxlColor;
+
+                for ( unsigned int y = 0 ; y < titleImg.getSize().y ; y++ ) {
+                    for ( unsigned int x = 0 ; x < titleImg.getSize().x ; x++ ) {
+                        pxlColor = titleImg.getPixel( x , y );
+                        pxlColor.a = 255 - 255 * (diffSecs - FADE_TIME) / FADE_TIME;
+                        titleImg.setPixel( x , y , pxlColor );
+                    }
+                }
+
+                titleTexture.update( titleImg );
+
+                for ( unsigned int y = 0 ; y < createdImg.getSize().y ; y++ ) {
+                    for ( unsigned int x = 0 ; x < createdImg.getSize().x ; x++ ) {
+                        pxlColor = createdImg.getPixel( x , y );
+                        pxlColor.a = 255 - 255 * (FADE_TIME - diffSecs) / FADE_TIME;
+                        createdImg.setPixel( x , y , pxlColor );
+                    }
+                }
+
+                createdTexture.update( createdImg );
+            }
+
+            // Fade createdBy out
+            if ( titlePart == 4 ) {
+                sf::Color pxlColor;
+
+                for ( unsigned int y = 0 ; y < createdImg.getSize().y ; y++ ) {
+                    for ( unsigned int x = 0 ; x < createdImg.getSize().x ; x++ ) {
+                        pxlColor = createdImg.getPixel( x , y );
+                        pxlColor.a = 255 - 255 * (diffSecs - FADE_TIME) / FADE_TIME;
+                        createdImg.setPixel( x , y , pxlColor );
+                    }
+                }
+
+                createdTexture.update( createdImg );
+            }
+
+#if 0
+            if ( secs > 1 ) {
+                /* Starts at full opacity at 2 seconds, then gradually fades to
+                 * invisible; image is fully invisible three seconds later
+                 */
+                sf::Color pxlColor;
+                for ( unsigned int y = 0 ; y < titleImg.getSize().y ; y++ ) {
+                    for ( unsigned int x = 0 ; x < titleImg.getSize().x ; x++ ) {
+                        pxlColor = titleImg.getPixel( x , y );
+                        pxlColor.a = 255 - 255 * (secs - 1) / (TITLE_TIME - 1.f);
+                        titleImg.setPixel( x , y , pxlColor );
+                    }
+                }
+
+                titleTexture.update( titleImg );
+            }
+#endif
+
+            mainWin.draw( titleSpr );
+            mainWin.draw( createdSpr );
+        }
 
         // Draw pause graphic over everything if paused
         if ( isPaused ) {
@@ -301,6 +523,13 @@ int main() {
                 if ( event.key.code == sf::Keyboard::Return ) {
                     isPaused = !isPaused;
 
+                    if ( isPaused ) {
+                        Sounds::getInstance()->background().pause();
+                    }
+                    else {
+                        Sounds::getInstance()->background().play();
+                    }
+
                     // Show mouse cursor when paused
                     mainWin.setMouseCursorVisible( isPaused );
                 }
@@ -309,12 +538,18 @@ int main() {
             else if ( event.type == sf::Event::LostFocus ) {
                 isPaused = true;
 
+                // Stop background music while pausing
+                Sounds::getInstance()->background().pause();
+
                 // Show mouse cursor when paused
                 mainWin.setMouseCursorVisible( isPaused );
             }
 
             else if ( event.type == sf::Event::GainedFocus ) {
                 isPaused = false;
+
+                // Resume background music when not paused
+                Sounds::getInstance()->background().play();
 
                 // Show mouse cursor when paused
                 mainWin.setMouseCursorVisible( isPaused );

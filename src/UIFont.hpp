@@ -16,6 +16,8 @@ public:
 
     const sf::Font& arial();
 
+    const sf::Font& technical();
+
 protected:
     UIFont();
 
@@ -23,6 +25,7 @@ private:
     static UIFont* m_instance;
 
     static sf::Font m_arial;
+    static sf::Font m_technical;
 
     // disallow copy and assignment
     UIFont ( const UIFont& );

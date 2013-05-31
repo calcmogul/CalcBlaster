@@ -11,7 +11,7 @@ BEGIN
       VALUE "CompanyName", "Calc BC Games"
       VALUE "FileVersion", "1,0,0,0"
       VALUE "InternalName", "CalcBlaster"
-      VALUE "LegalCopyright", "Copyright (c) 2013 Calc BC Games"
+      VALUE "LegalCopyright", "Copyright (c) 2013 Tyler Veness and Matt Gray"
       VALUE "OriginalFilename", "CalcBlaster.exe"
       VALUE "ProductName", "CalcBlaster"
       VALUE "ProductVersion", "1.0"
