@@ -5,10 +5,8 @@
 //=============================================================================
 
 #include "EnemyFormula.hpp"
-#include "Bullet.hpp"
+#include "Sounds.hpp"
 #include "Utils.hpp"
-#include <SFML/Window/Keyboard.hpp>
-#include <cmath>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -201,6 +199,50 @@ void EnemyFormula::add( const sf::Vector2f& position , b2Vec2 speed ) {
 
 void EnemyFormula::addBullet( unsigned int index , const sf::Window& referTo ) {
     Bullet::add( *m_enemyFormulas[index] , referTo , sf::Color( 0 , 0 , 255 ) , Bullet::constant );
+}
+
+void EnemyFormula::checkCollisions( ShipBase& ship , const sf::RenderWindow& referTo ) {
+    EnemyFormula* formula;
+
+    unsigned int i = 0;
+    while ( i < m_enemyFormulas.size() ) {
+        formula = m_enemyFormulas[i];
+
+        sf::Vector2f pos( formula->drawShape->getPosition() );
+
+        // If bullet is off left or right of screen
+        if ( pos.x < referTo.getView().getCenter().x - referTo.getSize().x / 2.f ||
+                pos.x > referTo.getView().getCenter().x + referTo.getSize().x / 2.f ) {
+            delete formula; // bullet is outside of window view so delete it
+
+            /* Deal damage to the player since they didn't shoot the formula in
+             * time.
+             */
+            ship.setHealth( ship.getHealth() - 50 );
+
+            // Play sound for ship damage
+            Sounds::getInstance()->shipDamage().play();
+
+            continue; // stop checking body collisions for this bullet because it doesn't exist anymore
+        }
+
+        // If bullet is off bottom of screen
+        if ( pos.y > referTo.getView().getCenter().y + referTo.getSize().y / 2.f ) {
+            delete formula; // bullet is outside of window view so delete it
+
+            /* Deal damage to the player since they didn't shoot the formula in
+             * time.
+             */
+            ship.setHealth( ship.getHealth() - 50 );
+
+            // Play sound for ship damage
+            Sounds::getInstance()->shipDamage().play();
+
+            continue; // stop checking body collisions for this bullet because it doesn't exist anymore
+        }
+
+        i++;
+    }
 }
 
 void EnemyFormula::controlEnemies( void* userData ) {

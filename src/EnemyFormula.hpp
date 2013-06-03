@@ -35,6 +35,9 @@ public:
     static void add( const sf::Vector2f& position , b2Vec2 speed );
     static void addBullet( unsigned int index , const sf::Window& referTo );
 
+    // Destroys object if it went off the screen
+    static void checkCollisions( ShipBase& ship , const sf::RenderWindow& referTo );
+
     static void controlEnemies( void* userData );
 
 private:

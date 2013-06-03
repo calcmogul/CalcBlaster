@@ -235,16 +235,18 @@ int main() {
     /* ================================ */
 
     // Used to limit framerate of simulation
-    sf::Clock simTime;
+    sf::Clock frameTime;
 
-    // Prepare for simulation. Typically we use a time step of 1/60 of a
-    // second (30Hz) and 10 iterations. This provides a high quality simulation
-    // in most game scenarios.
+    /* Set the step values for the simulation.
+     * Time step is 1/30 of a second (30Hz)
+     */
     float32 timeStep = 1.0f / 30.0f;
     int32 velocityIterations = 64; //Min: 8
     int32 positionIterations = 24; //Min: 3
 
     mainWin.setView( sf::View( sf::FloatRect( backBody.drawShape->getPosition().x - mainWin.getSize().x / 2 , backBody.drawShape->getPosition().y - mainWin.getSize().y / 2 , mainWin.getSize().x , mainWin.getSize().y ) ) );
+
+    sf::Clock gameTime;
 
     sf::Event event;
     sf::Clock shootClock;
@@ -259,10 +261,13 @@ int main() {
             mainWin.close();
         }
 
-        /* If game isn't paused, the frame rate is at or below 30Hz, and the
+        /* If game isn't paused, the frame rate is at or below 60Hz, and the
          * player is still alive
          */
-        if ( titlePart > TOTAL_STEPS && !isPaused && simTime.getElapsedTime().asSeconds() > 1.f / 30.f && myShip.getHealth() > 0 ) {
+        if ( titlePart > TOTAL_STEPS && !isPaused && frameTime.getElapsedTime().asSeconds() > 1.f / 60.f && myShip.getHealth() > 0 ) {
+            // Reset frame rate timer
+            frameTime.restart();
+
             // Instruct the world to perform a single step of simulation.
             // It is generally best to keep the time step and iterations fixed.
             Box2DBase::world.Step( timeStep , velocityIterations , positionIterations );
@@ -273,6 +278,7 @@ int main() {
             Bullet::syncObjects( mainWin );
 
             Bullet::checkCollisions( myShip , mainWin );
+            EnemyFormula::checkCollisions( myShip , mainWin );
 
             myShip.controlShip( NULL );
             EnemyFormula::controlEnemies( NULL );
@@ -310,6 +316,11 @@ int main() {
                     Sounds::getInstance()->shoot().play();
                     Bullet::add( myShip , mainWin , sf::Color( 255 , 0 , 0 ) , Bullet::infinity );
 
+                    /* Bullets start out at (0,0), not at the Box2D body, so we
+                     * need to sync the two first.
+                     */
+                    Bullet::syncObjects( mainWin );
+
                     shootClock.restart();
                 }
 
@@ -317,21 +328,37 @@ int main() {
                     Sounds::getInstance()->shoot().play();
                     Bullet::add( myShip , mainWin , sf::Color( 0 , 0 , 255 ) , Bullet::constant );
 
+                    /* Bullets start out at (0,0), not at the Box2D body, so we
+                     * need to sync the two first.
+                     */
+                    Bullet::syncObjects( mainWin );
+
                     shootClock.restart();
                 }
 
                 else if ( sf::Keyboard::isKeyPressed( sf::Keyboard::L ) ) {
                     Sounds::getInstance()->shoot().play();
                     Bullet::add( myShip , mainWin , sf::Color( 0 , 0 , 0 ) , Bullet::zero );
+
+                    /* Bullets start out at (0,0), not at the Box2D body, so we
+                     * need to sync the two first.
+                     */
                     Bullet::syncObjects( mainWin );
 
                     shootClock.restart();
                 }
             }
 
-            if ( enemySpawnClock.getElapsedTime().asMilliseconds() > 2000 ) {
+            /* Time between spawns starts at 2 seconds and is cut in half every
+            * 2 minutes
+            */
+            if ( enemySpawnClock.getElapsedTime().asMilliseconds() > 2000 / ( 2.f * gameTime.getElapsedTime().asSeconds() / 120.f) ) {
                 // FIXME Use more exact method of limiting bounds of rand()
                 EnemyFormula::add( sf::Vector2f( 90 + rand() % (mainWin.getSize().x - 180) + mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f , mainWin.getView().getCenter().y - mainWin.getSize().y / 2.f ) , b2Vec2( 0.f , 0.f ) );
+
+                /* Enemies start out at (0,0), not at the Box2D body, so we
+                 * need to sync the two first.
+                 */
                 EnemyFormula::syncObjects( mainWin );
 
                 enemySpawnClock.restart();
