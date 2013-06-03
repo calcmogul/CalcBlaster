@@ -58,7 +58,7 @@ int main() {
 
     /* ===== Create title screen ===== */
     // Tracks progress during title screen animation
-    static unsigned int titlePart = 5;
+    static unsigned int titlePart = 0;
 
     // Title
     sf::Image titleImg;
@@ -116,7 +116,7 @@ int main() {
     sf::RectangleShape HUDBackground( sf::Vector2f( mainWin.getSize().x , 45.f ) );
     HUDBackground.setFillColor( sf::Color( 90 , 90 , 90 , 170 ) );
 
-    FriendlyShip myShip( sf::Vector2f( 0.f , 200.f ) , 600.f );
+    FriendlyShip myShip( sf::Vector2f( 0.f , 200.f ) , 500.f );
     myShip.syncObject( mainWin );
 
     /* ===== Create health bar sprite ===== */

@@ -27,6 +27,7 @@ Sounds* Sounds::getInstance() {
 Sounds::Sounds() {
     m_background.openFromFile( "Resources/Sounds/Background.flac" );
     m_background.setVolume( 50.f );
+    m_background.setLoop( true );
 
     m_shootBuffer.loadFromFile( "Resources/Sounds/ShootFX.flac" );
     m_shoot.setBuffer( m_shootBuffer );

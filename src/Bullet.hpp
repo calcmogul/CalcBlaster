@@ -11,7 +11,6 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Image.hpp>
-#include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
 
 class ShipBase;
@@ -42,22 +41,17 @@ public:
 
     const BulletType getType() const;
 
-    sf::RectangleShape shape;
-
 protected:
     static std::vector<Bullet*> m_bullets;
 
 private:
     Bullet( const ShipBase& ship , const sf::Window& referTo , const sf::Color& color , BulletType type );
 
-    // Override these because we don't want the Shape* in Box2DBase to be used
-    void syncObject( const sf::Window& referTo );
-    void draw( sf::RenderTarget& target , sf::RenderStates states ) const;
-
     static sf::Texture m_textures[Bullet::size];
+    static sf::Vector2u m_sizes[Bullet::size];
     static bool m_isLoaded;
 
-    sf::Sprite m_bulletSpr;
+    sf::RectangleShape shape;
 
     // FIXME If source body dies before bullet despawns, undefined behavior results
     const b2Body* const m_sourceBody;

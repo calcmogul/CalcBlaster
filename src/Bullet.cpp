@@ -8,15 +8,13 @@
 #include "ShipBase.hpp"
 #include "Sounds.hpp"
 #include "EnemyFormula.hpp"
-#include <iostream> // Remove me
 
 std::vector<Bullet*> Bullet::m_bullets;
-sf::Texture Bullet::m_textures[3];
+sf::Texture Bullet::m_textures[Bullet::size];
+sf::Vector2u Bullet::m_sizes[Bullet::size];
 bool Bullet::m_isLoaded = false;
 
 Bullet::~Bullet() {
-    std::cout << "die\n";
-
     std::vector<Bullet*>::iterator i;
     for ( i = m_bullets.begin() ; *i != this ; i++ ) {
         if ( i >= m_bullets.end() ) {
@@ -42,7 +40,7 @@ void Bullet::drawAll( sf::RenderTarget& target , sf::RenderStates states ) {
 void Bullet::syncObjects( const sf::Window& referTo ) {
     for ( unsigned int i = 0 ; i < m_bullets.size() ; i++ ) {
         m_bullets[i]->syncObject( referTo );
-        std::cout << "newPos=" << m_bullets[i]->drawShape->getPosition().x << m_bullets[i]->drawShape->getPosition().y << "\n";
+        //std::cout << "newPos=" << m_bullets[i]->drawShape->getPosition().x << m_bullets[i]->drawShape->getPosition().y << "\n";
     }
 }
 
@@ -134,37 +132,50 @@ const Bullet::BulletType Bullet::getType() const {
 
 Bullet::Bullet( const ShipBase& ship , const sf::Window& referTo , const sf::Color& color , BulletType type ) :
         Box2DBase( &shape , BoxToSFML( ship.body->GetPosition().x + 1.3f * cos( ship.body->GetAngle() + b2_pi / 2.f ) , ship.body->GetPosition().y + 1.3f * sin( ship.body->GetAngle() + b2_pi / 2.f ) , referTo.getSize().y ) , b2_dynamicBody ) ,
-        shape() ,
         m_sourceBody( ship.body ) ,
         m_type( type ) {
     if ( !m_isLoaded ) {
         sf::Image tempImg;
 
         // Load zero bullet
-        tempImg.loadFromFile( "Resources/Bullets/Zero.png" );
+        if ( !tempImg.loadFromFile( "Resources/Bullets/Zero.png" ) ) {
+            tempImg.create( 16 , 16 , sf::Color( 255 , 0 , 0 ) );
+        }
         tempImg.createMaskFromColor( sf::Color( 255 , 255 , 255 ) , 0 );
-        m_textures[zero].loadFromImage( tempImg );
+        m_textures[zero].create( 16 , 16 );
+        m_textures[zero].update( tempImg );
+        m_sizes[zero] = tempImg.getSize();
 
         // Load constant bullet
-        tempImg.loadFromFile( "Resources/Bullets/Constant.png" );
+        if ( !tempImg.loadFromFile( "Resources/Bullets/Constant.png" ) ) {
+            tempImg.create( 16 , 16 , sf::Color( 0 , 0 , 0 ) );
+        }
         tempImg.createMaskFromColor( sf::Color( 255 , 255 , 255 ) , 0 );
-        m_textures[constant].loadFromImage( tempImg );
+        m_textures[constant].create( 16 , 16 );
+        m_textures[constant].update( tempImg );
+        m_sizes[constant] = tempImg.getSize();
 
         // Load infinity bullet
-        tempImg.loadFromFile( "Resources/Bullets/Infinity.png" );
+        if ( !tempImg.loadFromFile( "Resources/Bullets/Infinity.png" ) ) {
+            tempImg.create( 16 , 16 , sf::Color( 0 , 0 , 255 ) );
+        }
         tempImg.createMaskFromColor( sf::Color( 255 , 255 , 255 ) , 0 );
-        m_textures[infinity].loadFromImage( tempImg );
+        m_textures[infinity].create( 16 , 16 );
+        m_textures[infinity].update( tempImg );
+        m_sizes[infinity] = tempImg.getSize();
 
         m_isLoaded = true;
     }
 
-    // Set correct texture for the given type
-    m_bulletSpr.setTexture( m_textures[type] );
-
     // Set correct origin of the image for the given type
     sf::Vector2u tempSizeU = m_textures[type].getSize();
     sf::Vector2f tempSizeF( tempSizeU.x , tempSizeU.y );
-    m_bulletSpr.setOrigin( tempSizeF / 2.f );
+    shape.setSize( tempSizeF );
+    shape.setOrigin( tempSizeF / 2.f );
+
+    // Set correct texture for the given type
+    shape.setTexture( &(m_textures[type]) );
+    shape.setTextureRect( sf::IntRect( 0 , 0 , m_sizes[type].x , m_sizes[type].y ) );
 
     float angle = ship.body->GetAngle();
 
@@ -180,21 +191,4 @@ Bullet::Bullet( const ShipBase& ship , const sf::Window& referTo , const sf::Col
 
     body->SetLinearVelocity( b2Vec2( 10.f * cos( angle + b2_pi / 2.f ) , 10.f + 10.f * sin( angle + b2_pi / 2.f ) ) + ship.body->GetLinearVelocity() );
     body->SetTransform( body->GetPosition() , angle );
-
-    shape.setSize( tempSizeF );
-    shape.setFillColor( color );
-    shape.setOrigin( tempSizeF / 2.f );
-
-    std::cout << "live\n";
-}
-
-void Bullet::syncObject( const sf::Window& referTo ) {
-    // FIXME Sprite isn't drawing with body properly
-    //m_bulletSpr
-    drawShape->setPosition( BoxToSFML( body->GetPosition().x , body->GetPosition().y , referTo.getSize().y ) );
-    drawShape->setRotation( 360.f - body->GetAngle() * 180.f / b2_pi );
-}
-
-void Bullet::draw( sf::RenderTarget& target , sf::RenderStates states ) const {
-    target.draw( *drawShape , states );
 }
