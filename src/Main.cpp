@@ -349,10 +349,10 @@ int main() {
                 }
             }
 
-            /* Time between spawns starts at 2 seconds and is cut in half every
-            * 2 minutes
-            */
-            if ( enemySpawnClock.getElapsedTime().asMilliseconds() > 2000 / ( 2.f * gameTime.getElapsedTime().asSeconds() / 120.f) ) {
+            /* Time between spawns starts at 4 minutes and is cut in half every
+             * second continuously (there is no step)
+             */
+            if ( enemySpawnClock.getElapsedTime().asSeconds() > 240 / ( 2.f * gameTime.getElapsedTime().asSeconds() ) ) {
                 // FIXME Use more exact method of limiting bounds of rand()
                 EnemyFormula::add( sf::Vector2f( 90 + rand() % (mainWin.getSize().x - 180) + mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f , mainWin.getView().getCenter().y - mainWin.getSize().y / 2.f ) , b2Vec2( 0.f , 0.f ) );
 
