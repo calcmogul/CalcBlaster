@@ -42,11 +42,15 @@ private:
 
     static std::vector<EnemyFormula*> m_enemyFormulas;
 
+    // Contains textures for images of all formulas
     static std::vector<sf::Texture*> m_textures;
+
+    // Contains sizes of images which are contained by the textures
+    static std::vector<sf::Vector2u> m_sizes;
 
     static std::map<std::string , std::string> m_limits;
 
-    sf::Texture* m_shipTexture;
+    sf::Texture* m_formulaTexture;
 
     b2Vec2 m_speed;
 

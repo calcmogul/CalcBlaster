@@ -6,7 +6,9 @@
 
 #include "EnemyFormula.hpp"
 #include "Bullet.hpp"
+#include "Utils.hpp"
 #include <SFML/Window/Keyboard.hpp>
+#include <cmath>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -14,12 +16,14 @@
 bool EnemyFormula::m_isLoaded = false;
 std::vector<EnemyFormula*> EnemyFormula::m_enemyFormulas;
 std::vector<sf::Texture*> EnemyFormula::m_textures;
+std::vector<sf::Vector2u> EnemyFormula::m_sizes;
 std::map<std::string , std::string> EnemyFormula::m_limits;
 
 EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : ShipBase( position , 4 , 1 ) {
     if ( !m_isLoaded ) {
         sf::Texture* tempTexture = NULL;
         sf::Image* tempImage = new sf::Image;
+        sf::Vector2u tempSize;
 
         std::stringstream ss;
 
@@ -63,10 +67,16 @@ EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : Ship
             stillLoading = tempImage->loadFromFile( ss.str() );
 
             if ( stillLoading ) {
+                tempSize.x = tempImage->getSize().x;
+                tempSize.y = tempImage->getSize().y;
+
                 tempImage->createMaskFromColor( sf::Color( 255 , 255 , 255 ) , 0 );
 
-                tempTexture->loadFromImage( *tempImage );
+                tempTexture->create( nextPowerTwo( tempSize.x ) , nextPowerTwo( tempSize.y ) );
+                tempTexture->update( *tempImage , 1 , 1 );
+
                 m_textures.push_back( tempTexture );
+                m_sizes.push_back( tempSize );
             }
             /* Make sure to delete the last texture here because it won't be
              * referenced elsewhere due to the loading failure
@@ -86,12 +96,12 @@ EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : Ship
 
     // Choose a formula at random
     unsigned int imgPos = rand() % m_textures.size();
-    m_shipTexture = m_textures[imgPos];
+    m_formulaTexture = m_textures[imgPos];
 
     b2PolygonShape shipRectangle;
 
     // Store size locally to avoid unnecessary reads from graphics card
-    sf::Vector2u tempSize = m_shipTexture->getSize();
+    sf::Vector2u tempSize = m_sizes[imgPos];
     sf::Vector2f shipSize( tempSize.x , tempSize.y );
 
     b2Vec2 shipVertices[4];
@@ -107,11 +117,11 @@ EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : Ship
 
     /* ===== Create SFML shape ===== */
     for ( unsigned int i = 0 ; i < 4 ; i++ ) {
-        shape.setPoint( i , sf::Vector2f( BoxToSFML_x( shipVertices[i].x ) , BoxToSFML_y( shipVertices[i].y ,  m_shipTexture->getSize().y ) ) );
+        shape.setPoint( i , sf::Vector2f( BoxToSFML_x( shipVertices[i].x ) , BoxToSFML_y( shipVertices[i].y ,  m_formulaTexture->getSize().y ) ) );
     }
-    shape.setOrigin( 0 , m_shipTexture->getSize().y );
+    shape.setOrigin( 0 , m_textures[imgPos]->getSize().y + 1 );
 
-    shape.setTexture( m_shipTexture );
+    Box2DBase::setTexture( m_formulaTexture , tempSize );
     /* ============================= */
 
     // Stores speed of this formula
@@ -167,6 +177,8 @@ void EnemyFormula::cleanup() {
          */
         delete m_textures[0];
         m_textures.erase( m_textures.begin() );
+
+        m_sizes.erase( m_sizes.begin() );
     }
 }
 

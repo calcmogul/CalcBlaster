@@ -34,10 +34,17 @@ public:
     virtual void syncObject( const sf::Window& referTo ); // syncs Box2D body attributes with SFML shape
     virtual void draw( sf::RenderTarget& target , sf::RenderStates states = sf::RenderStates::Default ) const;
 
+    // Sets texture of drawShape and the image size in that texture
+    void setTexture( sf::Texture* texture , sf::Vector2u subSize );
+
     static b2World world;
 
     b2Body* body;
     sf::Shape* drawShape;
+
+private:
+    // Size of image in subrectangle of texture
+    sf::Vector2u m_imageSize;
 };
 
 #endif // BOX2D_BASE_HPP

@@ -56,3 +56,10 @@ void Box2DBase::syncObject( const sf::Window& referTo ) {
 void Box2DBase::draw( sf::RenderTarget& target , sf::RenderStates states ) const {
     target.draw( *drawShape , states );
 }
+
+void Box2DBase::setTexture( sf::Texture* texture , sf::Vector2u subSize ) {
+    drawShape->setTexture( texture );
+
+    sf::IntRect tempRect( 0 , 0 , subSize.x , subSize.y );
+    drawShape->setTextureRect( tempRect );
+}

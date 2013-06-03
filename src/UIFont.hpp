@@ -14,8 +14,6 @@ public:
     // @return a global instance of the resources available
     static UIFont* getInstance();
 
-    const sf::Font& arial();
-
     const sf::Font& technical();
 
 protected:
@@ -24,7 +22,6 @@ protected:
 private:
     static UIFont* m_instance;
 
-    static sf::Font m_arial;
     static sf::Font m_technical;
 
     // disallow copy and assignment

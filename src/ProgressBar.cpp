@@ -15,7 +15,7 @@ ProgressBar::ProgressBar( const sf::Vector2f& size , std::string message , const
     barFill.setFillColor( fullFillColor );
     barFill.setPosition( sf::Vector2f( RectangleShape::getPosition().x + 1.f , RectangleShape::getPosition().y + 1.f ) );
 
-    sfText.setFont( UIFont::getInstance()->arial() );
+    sfText.setFont( UIFont::getInstance()->technical() );
     sfText.setCharacterSize( 12 );
     sfText.setString( message );
     sfText.setColor( sf::Color( 255 , 255 , 255 ) );

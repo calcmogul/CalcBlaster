@@ -18,7 +18,7 @@ FriendlyShip::FriendlyShip( const sf::Vector2f& position , float fullHealth ) : 
             exit( 1 );
         }
 
-        if ( !m_shipTexture.loadFromImage( shipImage ) ) {
+        if ( !m_shipTexture.loadFromImage( shipImage , sf::IntRect( 1 , 0 , shipImage.getSize().x - 2 , shipImage.getSize().y ) ) ) {
             exit( 1 );
         }
 

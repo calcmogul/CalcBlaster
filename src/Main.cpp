@@ -14,16 +14,18 @@
 #include <SFML/System/Sleep.hpp>
 #include <sstream>
 #include <cmath>
-#include <iostream> // TODO Remove me
 
 #include "UIFont.hpp"
 #include "Sounds.hpp"
 #include "FriendlyShip.hpp"
 #include "EnemyFormula.hpp"
 #include "Bullet.hpp"
+#include "Utils.hpp"
 
+// Constants used during title screen animation
 const float DISP_TIME = 2.f;
 const float FADE_TIME = 2.f;
+const unsigned int TOTAL_STEPS = 4;
 
 int main() {
     // TODO Fix bullet spawning behind ship to make window resizeable
@@ -37,15 +39,17 @@ int main() {
     }
     mainWin.setIcon( appIcon.getSize().x , appIcon.getSize().y , appIcon.getPixelsPtr() );
 
-    sf::Texture backgroundTexture;
-    sf::Vector2f backSize;
-
-    if ( !backgroundTexture.loadFromFile( "Resources/PaperBackground.png" ) ) {
+    sf::Image backgroundImage;
+    if ( !backgroundImage.loadFromFile( "Resources/PaperBackground.png" ) ) {
         exit( 1 );
     }
+    sf::Vector2f backSize;
+    backSize.x = backgroundImage.getSize().x;
+    backSize.y = backgroundImage.getSize().y;
 
-    backSize.x = backgroundTexture.getSize().x;
-    backSize.y = backgroundTexture.getSize().y;
+    sf::Texture backgroundTexture;
+    backgroundTexture.create( nextPowerTwo( backSize.x ) , nextPowerTwo( backSize.y ) );
+    backgroundTexture.update( backgroundImage );
 
     backgroundTexture.setRepeated( true ); // Tiling background
 
@@ -53,6 +57,9 @@ int main() {
     backgroundSprite.setTextureRect( sf::IntRect( -backSize.x , -backSize.y , mainWin.getSize().x + 2 * backSize.x , mainWin.getSize().y + 2 * backSize.y ) );
 
     /* ===== Create title screen ===== */
+    // Tracks progress during title screen animation
+    static unsigned int titlePart = 5;
+
     // Title
     sf::Image titleImg;
     if ( !titleImg.loadFromFile( "Resources/CalcBlasterTitle.png" ) ) {
@@ -210,7 +217,7 @@ int main() {
 
     /* ===== Create pause graphic ===== */
     sf::RenderTexture pauseTexture;
-    pauseTexture.create( 400 , 300 );
+    pauseTexture.create( 512 , 512 ); // 400, 300
 
     sf::RectangleShape pauseRect( sf::Vector2f( 400 , 300 ) );
     pauseRect.setFillColor( sf::Color( 90 , 90 , 90 , 170 ) );
@@ -223,7 +230,8 @@ int main() {
     pauseTexture.draw( pauseText );
     pauseTexture.display();
 
-    sf::Sprite pauseSprite(  pauseTexture.getTexture() );
+    sf::Sprite pauseSprite( pauseTexture.getTexture() );
+    pauseSprite.setTextureRect( sf::IntRect( 0 , 0 , 400 , 300 ) );
     /* ================================ */
 
     // Used to limit framerate of simulation
@@ -233,8 +241,8 @@ int main() {
     // second (30Hz) and 10 iterations. This provides a high quality simulation
     // in most game scenarios.
     float32 timeStep = 1.0f / 30.0f;
-    int32 velocityIterations = 64; //8
-    int32 positionIterations = 24; //3
+    int32 velocityIterations = 64; //Min: 8
+    int32 positionIterations = 24; //Min: 3
 
     mainWin.setView( sf::View( sf::FloatRect( backBody.drawShape->getPosition().x - mainWin.getSize().x / 2 , backBody.drawShape->getPosition().y - mainWin.getSize().y / 2 , mainWin.getSize().x , mainWin.getSize().y ) ) );
 
@@ -254,7 +262,7 @@ int main() {
         /* If game isn't paused, the frame rate is at or below 30Hz, and the
          * player is still alive
          */
-        if ( titleTime.getElapsedTime().asSeconds() > (4 * FADE_TIME + 2 * DISP_TIME) && !isPaused && simTime.getElapsedTime().asSeconds() > 1.f / 30.f && myShip.getHealth() > 0 ) {
+        if ( titlePart > TOTAL_STEPS && !isPaused && simTime.getElapsedTime().asSeconds() > 1.f / 30.f && myShip.getHealth() > 0 ) {
             // Instruct the world to perform a single step of simulation.
             // It is generally best to keep the time step and iterations fixed.
             Box2DBase::world.Step( timeStep , velocityIterations , positionIterations );
@@ -384,8 +392,7 @@ int main() {
         mainWin.draw( healthSprite );
         mainWin.draw( scoreText );
 
-        static unsigned int titlePart = 0;
-        if ( titlePart < 5 ) {
+        if ( titlePart <= TOTAL_STEPS ) {
             float totalSecs = titleTime.getElapsedTime().asSeconds();
             float diffSecs = diffTime.getElapsedTime().asSeconds();
 
@@ -501,7 +508,7 @@ int main() {
 
         // Draw pause graphic over everything if paused
         if ( isPaused ) {
-            pauseSprite.setPosition( sf::Vector2f( mainWin.getView().getCenter().x - pauseTexture.getSize().x / 2.f , mainWin.getView().getCenter().y - pauseTexture.getSize().y / 2.f ) );
+            pauseSprite.setPosition( sf::Vector2f( mainWin.getView().getCenter().x - pauseSprite.getTextureRect().width / 2.f , mainWin.getView().getCenter().y - pauseSprite.getTextureRect().height / 2.f ) );
             mainWin.draw( pauseSprite );
         }
 
