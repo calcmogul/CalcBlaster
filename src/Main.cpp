@@ -13,7 +13,11 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/System/Sleep.hpp>
 #include <sstream>
+#include <map>
+#include <fstream>
+#include <list>
 #include <cmath>
+#include <iostream> // TODO Remove me
 
 #include "UIFont.hpp"
 #include "Sounds.hpp"
@@ -113,6 +117,27 @@ int main() {
     sf::Clock diffTime;
     /* =============================== */
 
+    /* ===== High Score Graphics ===== */
+    // These hold the high score graphic
+    sf::Sprite hiScoreSprite;
+    sf::RenderTexture hiScoreTexture;
+    hiScoreTexture.create( 1024 , 1024 );
+
+    // Holds version of graphic before user's score is displayed
+    sf::RenderTexture preScoreTexture;
+    preScoreTexture.create( 1024 , 1024 );
+    /* =============================== */
+
+
+    /* ===== Hold misc. data for high score table ===== */
+    // Flag determining if high score graphic was created yet
+    bool isHiScoreCreated = false;
+
+    // Variables that hold
+    std::pair<const std::string , std::string>* player = NULL;
+    float playerRow = 0;
+    /* ================================================ */
+
     sf::RectangleShape HUDBackground( sf::Vector2f( mainWin.getSize().x , 45.f ) );
     HUDBackground.setFillColor( sf::Color( 90 , 90 , 90 , 170 ) );
 
@@ -130,7 +155,7 @@ int main() {
     /* ==================================== */
 
     // Create text that holds score
-    sf::Text scoreText( "Score: 0" , UIFont::getInstance()->technical() , 18 );
+    sf::Text scoreText( "Score: 0" , UIFont::getInstance()->technical() , 24 );
     scoreText.setPosition( 0.f , 0.f );
     unsigned long long int scoreCount = 0;
 
@@ -224,6 +249,7 @@ int main() {
 
     sf::Text pauseText( "PAUSED" , UIFont::getInstance()->technical() , 50 );
     pauseText.setPosition( sf::Vector2f( (pauseRect.getSize().x - pauseText.findCharacterPos( 7 ).x) / 2.f , (pauseRect.getSize().y - pauseText.getCharacterSize()) / 2.f ) );
+    pauseText.setStyle( sf::Text::Bold );
     pauseText.setColor( sf::Color( 255 , 255 , 255 ) );
 
     pauseTexture.draw( pauseRect );
@@ -388,9 +414,120 @@ int main() {
 
             healthSprite.setTextureRect( sf::IntRect( 0 , 0 , healthTexture.getSize().x * myShip.getHealth() / 100.f , healthTexture.getSize().y ) );
         }
-        // If player is dead, show the high scores
-        else if ( myShip.getHealth() == 0 ) {
-            // TODO Create high scores table and save it to a file
+        // Create high score graphic if it hasn't been already
+        else if ( myShip.getHealth() == 0 && !isHiScoreCreated ) {
+            // Holds position of row at which to draw strings
+            float drawRow = 20.f;
+
+            // Create background
+            sf::RectangleShape hiScoreRect( sf::Vector2f( 600 , 450 ) );
+            hiScoreRect.setFillColor( sf::Color( 90 , 90 , 90 , 170 ) );
+            preScoreTexture.draw( hiScoreRect );
+
+            // Write header
+            sf::Text hiScoreText( "High Scores" , UIFont::getInstance()->technical() , 50 );
+            hiScoreText.setPosition( sf::Vector2f( (hiScoreRect.getSize().x - hiScoreText.findCharacterPos( 12 ).x) / 2.f , drawRow ) );
+            hiScoreText.setStyle( sf::Text::Bold );
+            hiScoreText.setColor( sf::Color( 255 , 255 , 255 ) );
+            preScoreTexture.draw( hiScoreText );
+
+            drawRow = drawRow + hiScoreText.getCharacterSize() + 15.f;
+
+            /* ===== Parse high scores file and generate table ===== */
+            hiScoreText.setCharacterSize( 30 );
+            std::ifstream hiScoreFile( "HighScore.txt" );
+
+            std::multimap<std::string , std::string> entries;
+            std::string tempName;
+            std::string tempScore;
+
+            if ( hiScoreFile.is_open() ) {
+                while ( !hiScoreFile.eof() ) {
+                    std::getline( hiScoreFile , tempName );
+                    std::getline( hiScoreFile , tempScore );
+
+                    entries.insert( std::pair<std::string,std::string>( tempScore , tempName ) );
+                }
+
+                hiScoreFile.close();
+            }
+
+            // Process the player's current score
+            std::stringstream ss;
+            ss << "PLAYER";
+            tempName = ss.str();
+
+            ss.clear();
+            ss.str( "" );
+            ss << scoreCount;
+            tempScore = ss.str();
+
+            entries.insert( std::pair<std::string,std::string>( tempScore , tempName ) );
+
+            // Remove map entries from end until there are five in the map
+            while ( entries.size() > 5 ) {
+                std::map<std::string , std::string>::iterator i = entries.end();
+                i--;
+
+                entries.erase( i );
+            }
+
+            // Attempt to find the player's score
+            for ( std::map<std::string , std::string>::iterator i = entries.begin() ; i != entries.end() ; i++ ) {
+                if ( i->second == std::string("PLAYER") ) {
+                    // Store address of object pointed to by iterator
+                    player = &*i;
+
+                    break;
+                }
+            }
+
+            // Draw all entries in order
+            for ( std::map<std::string , std::string>::iterator i = entries.begin() ; i != entries.end() ; i++ ) {
+                // Skip drawing player because they have to enter their name later
+                //if ( player != &*i ) {
+                    hiScoreText.setString( i->second );
+                    hiScoreText.setString( "" );
+                    hiScoreText.setPosition( sf::Vector2f( 60.f , drawRow ) );
+                    preScoreTexture.draw( hiScoreText );
+
+                    hiScoreText.setString( i->first );
+                    hiScoreText.setPosition( sf::Vector2f( 600 - hiScoreText.findCharacterPos( hiScoreText.getString().getSize() + 1 ).x , drawRow ) );
+                    preScoreTexture.draw( hiScoreText );
+                //}
+#if 0
+                else {
+                    // TODO Allow name entry
+
+                    // Store the player's drawing row
+                    playerRow = drawRow;
+                }
+#endif
+
+                drawRow = drawRow + hiScoreText.getCharacterSize() + 10.f;
+            }
+            /* ===================================================== */
+
+            // Store scores to file
+            std::ofstream scoreFile( "HighScore.txt" , std::fstream::trunc );
+            if ( scoreFile.is_open() ) {
+                std::list<std::pair<const std::string , std::string>> elems;
+                for ( std::map<std::string , std::string>::iterator i = entries.begin() ; i != entries.end() ; i++ ) {
+                    elems.push_back( *i );
+                    elems.sort(); // TODO Create custom sorting function
+                    scoreFile << i->second << "\n";
+                    scoreFile << i->first << "\n";
+                }
+
+                scoreFile.close();
+            }
+
+            preScoreTexture.display();
+
+            hiScoreSprite.setTexture( preScoreTexture.getTexture() );
+            hiScoreSprite.setTextureRect( sf::IntRect( 0 , 0 , 600 , 450 ) );
+
+            isHiScoreCreated = true;
         }
 
         HUDBackground.setPosition( mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f , mainWin.getView().getCenter().y + mainWin.getSize().y / 2.f - HUDBackground.getSize().y );
@@ -405,7 +542,7 @@ int main() {
             scoreText.setString( ss.str() );
         }
 
-        scoreText.setPosition( mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f + mainWin.getSize().x - (scoreText.findCharacterPos( scoreText.getString().getSize() ).x - scoreText.getPosition().x) - 20.f , mainWin.getView().getCenter().y + mainWin.getSize().y / 2.f - HUDBackground.getSize().y / 2.f - scoreText.getCharacterSize() / 2.f );
+        scoreText.setPosition( mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f + mainWin.getSize().x - (scoreText.findCharacterPos( scoreText.getString().getSize() + 1 ).x - scoreText.getPosition().x) - 20.f , mainWin.getView().getCenter().y + mainWin.getSize().y / 2.f - HUDBackground.getSize().y / 2.f - scoreText.getCharacterSize() / 2.f );
 
         mainWin.clear( sf::Color( 10 , 10 , 10 ) );
 
@@ -511,26 +648,20 @@ int main() {
                 createdTexture.update( createdImg );
             }
 
-#if 0
-            if ( secs > 1 ) {
-                /* Starts at full opacity at 2 seconds, then gradually fades to
-                 * invisible; image is fully invisible three seconds later
-                 */
-                sf::Color pxlColor;
-                for ( unsigned int y = 0 ; y < titleImg.getSize().y ; y++ ) {
-                    for ( unsigned int x = 0 ; x < titleImg.getSize().x ; x++ ) {
-                        pxlColor = titleImg.getPixel( x , y );
-                        pxlColor.a = 255 - 255 * (secs - 1) / (TITLE_TIME - 1.f);
-                        titleImg.setPixel( x , y , pxlColor );
-                    }
-                }
-
-                titleTexture.update( titleImg );
-            }
-#endif
-
             mainWin.draw( titleSpr );
             mainWin.draw( createdSpr );
+        }
+
+        // If player is dead, show the high scores
+        if ( myShip.getHealth() == 0 ) {
+            // Display high scores table and save the latest one to a file
+            hiScoreSprite.setPosition( sf::Vector2f( mainWin.getView().getCenter().x - hiScoreSprite.getTextureRect().width / 2.f , mainWin.getView().getCenter().y - hiScoreSprite.getTextureRect().height / 2.f ) );
+            mainWin.draw( hiScoreSprite );
+
+            if ( isHiScoreCreated ) {
+
+            }
+            // TODO Name entry
         }
 
         // Draw pause graphic over everything if paused

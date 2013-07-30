@@ -52,6 +52,8 @@ EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : Ship
                     m_limits[line.substr( 0 , colonPos )] = line.substr( typeStart , line.length() );
                 }
             }
+
+            limitsFile.close();
         }
 
         // While there are still functions in the folder, load them
