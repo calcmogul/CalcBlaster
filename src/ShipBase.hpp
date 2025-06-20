@@ -1,43 +1,42 @@
-//=============================================================================
-//File Name: ShipBase.hpp
-//Description: Controls Box2D ship
-//Author: Tyler Veness
-//=============================================================================
+// Copyright (c) Tyler Veness
 
-#ifndef SHIP_BASE_HPP
-#define SHIP_BASE_HPP
+#pragma once
 
-#include "Box2DBase.hpp"
+#include <stdint.h>
+
 #include <SFML/Graphics/ConvexShape.hpp>
 #include <SFML/Graphics/Texture.hpp>
 
+#include "Box2DBase.hpp"
+
+/**
+ * Controls Box2D ship.
+ */
 class ShipBase : public Box2DBase {
-public:
-    // 'pts' is number of points in convex shape
-    ShipBase( const sf::Vector2f& position , unsigned int pts , long long int fullHealth );
-    virtual ~ShipBase();
+ public:
+  // 'pts' is number of points in convex shape
+  ShipBase(const sf::Vector2f& position, uint32_t pts, int64_t fullHealth);
+  virtual ~ShipBase();
 
-    // userData contains special data needed by each function impl
-    virtual void controlShip( void* userData ) = 0;
+  // userData contains special data needed by each function impl
+  virtual void controlShip(void* userData) = 0;
 
-    void setHealth( long long int health );
+  void setHealth(int64_t health);
 
-    long long int getHealth() const;
+  int64_t getHealth() const;
 
-    void setScore( unsigned long long int score );
+  void setScore(uint64_t score);
 
-    unsigned long long int getScore() const;
+  uint64_t getScore() const;
 
-    sf::ConvexShape shape;
+  sf::ConvexShape shape;
 
-protected:
-    // 100 per ship image
-    long long int m_health;
+ protected:
+  // 100 per ship image
+  int64_t m_health;
 
-    long long unsigned int m_score;
+  uint64_t m_score;
 
-    static float m_maxSpeed;
-    b2Vec2 m_shipSpeed;
+  static float m_maxSpeed;
+  b2Vec2 m_shipSpeed;
 };
-
-#endif // SHIP_BASE_HPP

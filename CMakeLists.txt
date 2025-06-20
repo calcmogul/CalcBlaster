@@ -16,10 +16,7 @@ file(GLOB_RECURSE cpp_src src/*.cpp)
 add_executable(CalcBlaster ${cpp_src})
 
 if(NOT MSVC)
-    target_compile_options(
-        CalcBlaster
-        PRIVATE -Wall -pedantic -Wextra -Werror
-    )
+    target_compile_options(CalcBlaster PRIVATE -Wall -pedantic -Wextra -Werror)
 else()
     # Suppress the following warnings:
     #   * C4244: lossy conversion

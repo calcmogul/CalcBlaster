@@ -1,0 +1,14 @@
+cppHeaderFileInclude {
+  \.hpp$
+}
+
+cppSrcFileInclude {
+  \.cpp$
+}
+
+modifiableFileExclude {
+  \.flac$
+  \.ico$
+  \.png$
+  \.ttf$
+}

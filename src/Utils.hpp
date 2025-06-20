@@ -1,13 +1,6 @@
-//=============================================================================
-//File Name: Utils.hpp
-//Description: Defines several utility functions
-//Author: Tyler Veness
-//=============================================================================
+// Copyright (c) Tyler Veness
 
-#ifndef UTILS_HPP
-#define UTILS_HPP
+#pragma once
 
 // Returns next power of two above given number
-unsigned int nextPowerTwo( unsigned int num );
-
-#endif // UTILS_HPP
+unsigned int nextPowerTwo(unsigned int num);

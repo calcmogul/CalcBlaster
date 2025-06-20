@@ -1,8 +1,4 @@
-//=============================================================================
-//File Name: Sounds.cpp
-//Description: Provides a collection of fonts for use by other classes
-//Author: Tyler Veness
-//=============================================================================
+// Copyright (c) Tyler Veness
 
 #include "Sounds.hpp"
 
@@ -17,37 +13,37 @@ sf::SoundBuffer Sounds::m_shipDamageBuffer{"resources/sounds/ShipDamage.flac"};
 sf::Sound Sounds::m_shipDamage{m_shipDamageBuffer};
 
 Sounds* Sounds::getInstance() {
-    if ( m_instance == nullptr ) {
-        m_instance = new Sounds;
-    }
+  if (m_instance == nullptr) {
+    m_instance = new Sounds;
+  }
 
-    return m_instance;
+  return m_instance;
 }
 
 Sounds::Sounds() {
-    m_background.setVolume( 50.f );
-    m_background.setLooping( true );
+  m_background.setVolume(50.f);
+  m_background.setLooping(true);
 
-    m_shoot.setBuffer( m_shootBuffer );
-    m_shoot.setVolume( 50.f );
+  m_shoot.setBuffer(m_shootBuffer);
+  m_shoot.setVolume(50.f);
 
-    m_shipDamage.setBuffer( m_shipDamageBuffer );
+  m_shipDamage.setBuffer(m_shipDamageBuffer);
 
-    m_enemyKill.setBuffer( m_enemyKillBuffer );
+  m_enemyKill.setBuffer(m_enemyKillBuffer);
 }
 
 sf::Music& Sounds::background() {
-    return m_background;
+  return m_background;
 }
 
 sf::Sound& Sounds::shoot() {
-    return m_shoot;
+  return m_shoot;
 }
 
 sf::Sound& Sounds::shipDamage() {
-    return m_shipDamage;
+  return m_shipDamage;
 }
 
 sf::Sound& Sounds::enemyKill() {
-    return m_enemyKill;
+  return m_enemyKill;
 }
