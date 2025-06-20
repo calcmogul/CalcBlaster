@@ -75,7 +75,7 @@ EnemyFormula::EnemyFormula(const sf::Vector2f& position, b2Vec2 speed)
         tempImage->createMaskFromColor(sf::Color(255, 255, 255), 0);
 
         tempTexture = new sf::Texture{
-            {nextPowerTwo(tempSize.x), nextPowerTwo(tempSize.y)}};
+            sf::Vector2u{nextPowerTwo(tempSize.x), nextPowerTwo(tempSize.y)}};
         tempTexture->update(*tempImage);
 
         m_textures.push_back(tempTexture);

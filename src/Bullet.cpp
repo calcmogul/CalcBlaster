@@ -154,7 +154,7 @@ Bullet::Bullet(const ShipBase& ship, const sf::Window& referTo,
     {
       sf::Image tempImg{"resources/bullets/Zero.png"};
       tempImg.createMaskFromColor(sf::Color(255, 255, 255), 0);
-      m_textures[zero] = sf::Texture{{16, 16}};
+      m_textures[zero] = sf::Texture{sf::Vector2u{16, 16}};
       m_textures[zero].update(tempImg);
       m_sizes[zero] = tempImg.getSize();
     }
@@ -163,7 +163,7 @@ Bullet::Bullet(const ShipBase& ship, const sf::Window& referTo,
     {
       sf::Image tempImg{"resources/bullets/Constant.png"};
       tempImg.createMaskFromColor(sf::Color(255, 255, 255), 0);
-      m_textures[constant] = sf::Texture{{16, 16}};
+      m_textures[constant] = sf::Texture{sf::Vector2u{16, 16}};
       m_textures[constant].update(tempImg);
       m_sizes[constant] = tempImg.getSize();
     }
@@ -172,7 +172,7 @@ Bullet::Bullet(const ShipBase& ship, const sf::Window& referTo,
     {
       sf::Image tempImg{"resources/bullets/Infinity.png"};
       tempImg.createMaskFromColor(sf::Color(255, 255, 255), 0);
-      m_textures[infinity] = sf::Texture{{16, 16}};
+      m_textures[infinity] = sf::Texture{sf::Vector2u{16, 16}};
       m_textures[infinity].update(tempImg);
       m_sizes[infinity] = tempImg.getSize();
     }
