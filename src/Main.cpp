@@ -19,18 +19,12 @@
 #include <cmath>
 #include <iostream> // TODO Remove me
 
-#include "UIFont.hpp"
 #include "Sounds.hpp"
 #include "FriendlyShip.hpp"
 #include "EnemyFormula.hpp"
 #include "Bullet.hpp"
 #include "Utils.hpp"
-
-#define WIN32_LEAN_AND_MEAN
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT _WIN32_WINNT_WIN7
-#endif
-#include <windows.h>
+#include "globals.hpp"
 
 // Constants used during title screen animation
 const float DISP_TIME = 2.f;
@@ -39,57 +33,44 @@ const unsigned int TOTAL_STEPS = 4;
 
 int main() {
     // TODO Fix bullet spawning behind ship to make window resizeable
-    sf::RenderWindow mainWin( sf::VideoMode( 800 , 600 )  , "Calc Blaster" , sf::Style::Close );
+    sf::RenderWindow mainWin( sf::VideoMode( {800 , 600} )  , "Calc Blaster" , sf::Style::Close );
     mainWin.setMouseCursorVisible( false );
     mainWin.setVerticalSyncEnabled( true );
 
-    sf::Image appIcon;
-    if ( !appIcon.loadFromFile( "Resources/GalagaShip.png" ) ) {
-        exit( 1 );
-    }
-    mainWin.setIcon( appIcon.getSize().x , appIcon.getSize().y , appIcon.getPixelsPtr() );
+    sf::Image appIcon{"resources/GalagaShip.png"};
+    mainWin.setIcon( appIcon );
 
-    sf::Image backgroundImage;
-    if ( !backgroundImage.loadFromFile( "Resources/PaperBackground.png" ) ) {
-        exit( 1 );
-    }
+    sf::Image backgroundImage{"resources/PaperBackground.png"};
     sf::Vector2f backSize;
     backSize.x = backgroundImage.getSize().x;
     backSize.y = backgroundImage.getSize().y;
 
-    sf::Texture backgroundTexture;
-    backgroundTexture.create( nextPowerTwo( backSize.x ) , nextPowerTwo( backSize.y ) );
-    backgroundTexture.update( backgroundImage );
+    sf::Texture backgroundTexture{"resources/PaperBackground.png"};
 
     backgroundTexture.setRepeated( true ); // Tiling background
 
     sf::Sprite backgroundSprite( backgroundTexture );
-    backgroundSprite.setTextureRect( sf::IntRect( -backSize.x , -backSize.y , mainWin.getSize().x + 2 * backSize.x , mainWin.getSize().y + 2 * backSize.y ) );
+    backgroundSprite.setTextureRect( sf::IntRect( -sf::Vector2i{backSize} , {static_cast<int>(mainWin.getSize().x + 2 * backSize.x) , static_cast<int>(mainWin.getSize().y + 2 * backSize.y)} ) );
 
     /* ===== Create title screen ===== */
     // Tracks progress during title screen animation
     static unsigned int titlePart = 0;
 
     // Title
-    sf::Image titleImg;
-    if ( !titleImg.loadFromFile( "Resources/CalcBlasterTitle.png" ) ) {
-        exit( 1 );
-    }
+    sf::Image titleImg{"resources/CalcBlasterTitle.png"};
 
-    sf::Texture titleTexture;
-    titleTexture.loadFromImage( titleImg );
+    sf::Texture titleTexture{titleImg};
 
     sf::Sprite titleSpr( titleTexture );
     titleSpr.setPosition( sf::Vector2f( mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f , mainWin.getView().getCenter().y - mainWin.getSize().y / 2.f ) );
 
     // Created by
     sf::Image createdImg;
-    if ( !createdImg.loadFromFile( "Resources/CreatedBy.png" ) ) {
+    if ( !createdImg.loadFromFile( "resources/CreatedBy.png" ) ) {
         exit( 1 );
     }
 
-    sf::Texture createdTexture;
-    createdTexture.loadFromImage( createdImg );
+    sf::Texture createdTexture{createdImg};
 
     sf::Sprite createdSpr( createdTexture );
     createdSpr.setPosition( sf::Vector2f( mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f , mainWin.getView().getCenter().y - mainWin.getSize().y / 2.f ) );
@@ -99,9 +80,9 @@ int main() {
 
     for ( unsigned int y = 0 ; y < titleImg.getSize().y ; y++ ) {
         for ( unsigned int x = 0 ; x < titleImg.getSize().x ; x++ ) {
-            pxlColor = titleImg.getPixel( x , y );
+            pxlColor = titleImg.getPixel( {x , y} );
             pxlColor.a = 0;
-            titleImg.setPixel( x , y , pxlColor );
+            titleImg.setPixel( {x , y} , pxlColor );
         }
     }
 
@@ -109,9 +90,9 @@ int main() {
 
     for ( unsigned int y = 0 ; y < createdImg.getSize().y ; y++ ) {
         for ( unsigned int x = 0 ; x < createdImg.getSize().x ; x++ ) {
-            pxlColor = createdImg.getPixel( x , y );
+            pxlColor = createdImg.getPixel( {x , y} );
             pxlColor.a = 0;
-            createdImg.setPixel( x , y , pxlColor );
+            createdImg.setPixel( {x , y} , pxlColor );
         }
     }
 
@@ -124,24 +105,18 @@ int main() {
     /* =============================== */
 
     /* ===== High Score Graphics ===== */
-    // These hold the high score graphic
-    sf::Sprite hiScoreSprite;
-    sf::RenderTexture hiScoreTexture;
-    hiScoreTexture.create( 1024 , 1024 );
-
     // Holds version of graphic before user's score is displayed
-    sf::RenderTexture preScoreTexture;
-    preScoreTexture.create( 1024 , 1024 );
+    sf::RenderTexture preScoreTexture{{1024, 1024}};
+
+    // These hold the high score graphic
+    sf::Sprite hiScoreSprite{preScoreTexture.getTexture()};
+    sf::RenderTexture hiScoreTexture{{1024, 1024}};
     /* =============================== */
 
 
     /* ===== Hold misc. data for high score table ===== */
     // Flag determining if high score graphic was created yet
     bool isHiScoreCreated = false;
-
-    // Variables that hold
-    std::pair<const std::string , std::string>* player = NULL;
-    float playerRow = 0;
     /* ================================================ */
 
     sf::RectangleShape HUDBackground( sf::Vector2f( mainWin.getSize().x , 45.f ) );
@@ -151,18 +126,17 @@ int main() {
     myShip.syncObject( mainWin );
 
     /* ===== Create health bar sprite ===== */
-    sf::Texture healthTexture;
-    healthTexture.loadFromImage( appIcon );
+    sf::Texture healthTexture{appIcon};
     healthTexture.setRepeated( true );
 
     sf::Sprite healthSprite( healthTexture );
-    healthSprite.setTextureRect( sf::IntRect( 0 , 0 , healthTexture.getSize().x * myShip.getHealth() / 100.f , healthTexture.getSize().y ) );
-    healthSprite.setPosition( 0.f , 0.f );
+    healthSprite.setTextureRect( sf::IntRect( {0 , 0} , {static_cast<int>(healthTexture.getSize().x * myShip.getHealth() / 100.f) , static_cast<int>(healthTexture.getSize().y)} ) );
+    healthSprite.setPosition( {0.f , 0.f} );
     /* ==================================== */
 
     // Create text that holds score
-    sf::Text scoreText( "Score: 0" , UIFont::getInstance()->technical() , 24 );
-    scoreText.setPosition( 0.f , 0.f );
+    sf::Text scoreText( global_font(), "Score: 0" , 24 );
+    scoreText.setPosition( {0.f , 0.f} );
     unsigned long long int scoreCount = 0;
 
     sf::Vector2f winSize;
@@ -211,8 +185,7 @@ int main() {
     // Add the shape to the body.
     //backBody.body->CreateFixture( &backFixture ); // FIXME Fixture isn't in right spot
 
-    b2MassData backMass;
-    backBody.body->GetMassData( &backMass );
+    b2MassData backMass = backBody.body->GetMassData();
     backMass.mass = 1000000.f;
     backBody.body->SetMassData( &backMass );
 
@@ -227,43 +200,42 @@ int main() {
     /* ===== Handle background texture shifting with ship ===== */
     // Move background left
     if ( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x < mainWin.getSize().x / 2 + backSize.x ) {
-        backgroundSprite.setPosition( backgroundSprite.getPosition().x - backSize.x * ( std::ceil( std::fabs( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x - mainWin.getSize().x / 2 - backSize.x ) / backSize.x ) ) , backgroundSprite.getPosition().y );
+        backgroundSprite.setPosition( {backgroundSprite.getPosition().x - backSize.x * ( std::ceil( std::fabs( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x - mainWin.getSize().x / 2 - backSize.x ) / backSize.x ) ) , backgroundSprite.getPosition().y} );
     }
 
     // Move background right
     if ( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x > mainWin.getSize().x / 2 + backSize.x ) {
-        backgroundSprite.setPosition( backgroundSprite.getPosition().x + backSize.x * ( std::ceil( std::fabs( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x - mainWin.getSize().x / 2 - backSize.x ) / backSize.x ) ) , backgroundSprite.getPosition().y );
+        backgroundSprite.setPosition( {backgroundSprite.getPosition().x + backSize.x * ( std::ceil( std::fabs( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x - mainWin.getSize().x / 2 - backSize.x ) / backSize.x ) ) , backgroundSprite.getPosition().y} );
     }
 
     // Move background up
     if ( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y < mainWin.getSize().y / 2 + backSize.y ) {
-        backgroundSprite.setPosition( backgroundSprite.getPosition().x , backgroundSprite.getPosition().y - backSize.y * ( std::ceil( std::fabs( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y - mainWin.getSize().y / 2 - backSize.y ) / backSize.y ) ) );
+        backgroundSprite.setPosition( {backgroundSprite.getPosition().x , backgroundSprite.getPosition().y - backSize.y * ( std::ceil( std::fabs( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y - mainWin.getSize().y / 2 - backSize.y ) / backSize.y ) )} );
     }
 
     // Move background down
     if ( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y > mainWin.getSize().y / 2 + backSize.y ) {
-        backgroundSprite.setPosition( backgroundSprite.getPosition().x , backgroundSprite.getPosition().y + backSize.y * ( std::ceil( std::fabs( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y - mainWin.getSize().y / 2 - backSize.y ) / backSize.y ) ) );
+        backgroundSprite.setPosition( {backgroundSprite.getPosition().x , backgroundSprite.getPosition().y + backSize.y * ( std::ceil( std::fabs( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y - mainWin.getSize().y / 2 - backSize.y ) / backSize.y ) )} );
     }
     /* ======================================================== */
 
     /* ===== Create pause graphic ===== */
-    sf::RenderTexture pauseTexture;
-    pauseTexture.create( 512 , 512 ); // 400, 300
+    sf::RenderTexture pauseTexture{{512, 512}}; // 400, 300
 
     sf::RectangleShape pauseRect( sf::Vector2f( 400 , 300 ) );
     pauseRect.setFillColor( sf::Color( 90 , 90 , 90 , 170 ) );
 
-    sf::Text pauseText( "PAUSED" , UIFont::getInstance()->technical() , 50 );
+    sf::Text pauseText( global_font(), "PAUSED" , 50 );
     pauseText.setPosition( sf::Vector2f( (pauseRect.getSize().x - pauseText.findCharacterPos( 7 ).x) / 2.f , (pauseRect.getSize().y - pauseText.getCharacterSize()) / 2.f ) );
     pauseText.setStyle( sf::Text::Bold );
-    pauseText.setColor( sf::Color( 255 , 255 , 255 ) );
+    pauseText.setFillColor( sf::Color( 255 , 255 , 255 ) );
 
     pauseTexture.draw( pauseRect );
     pauseTexture.draw( pauseText );
     pauseTexture.display();
 
     sf::Sprite pauseSprite( pauseTexture.getTexture() );
-    pauseSprite.setTextureRect( sf::IntRect( 0 , 0 , 400 , 300 ) );
+    pauseSprite.setTextureRect( sf::IntRect( {0 , 0} , {400 , 300} ) );
     /* ================================ */
 
     // Used to limit framerate of simulation
@@ -272,15 +244,14 @@ int main() {
     /* Set the step values for the simulation.
      * Time step is 1/30 of a second (30Hz)
      */
-    float32 timeStep = 1.0f / 30.0f;
+    float timeStep = 1.0f / 30.0f;
     int32 velocityIterations = 64; //Min: 8
     int32 positionIterations = 24; //Min: 3
 
-    mainWin.setView( sf::View( sf::FloatRect( backBody.drawShape->getPosition().x - mainWin.getSize().x / 2 , backBody.drawShape->getPosition().y - mainWin.getSize().y / 2 , mainWin.getSize().x , mainWin.getSize().y ) ) );
+    mainWin.setView( sf::View( sf::FloatRect( {backBody.drawShape->getPosition().x - mainWin.getSize().x / 2 , backBody.drawShape->getPosition().y - mainWin.getSize().y / 2} , sf::Vector2f{mainWin.getSize()} ) ) );
 
     sf::Clock gameTime;
 
-    sf::Event event;
     sf::Clock shootClock;
 
     sf::Clock enemySpawnClock;
@@ -289,7 +260,7 @@ int main() {
 
     Sounds::getInstance()->background().play();
     while ( mainWin.isOpen() ) {
-        if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Escape ) ) {
+        if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Key::Escape ) ) {
             mainWin.close();
         }
 
@@ -312,8 +283,8 @@ int main() {
             Bullet::checkCollisions( myShip , mainWin );
             EnemyFormula::checkCollisions( myShip , mainWin );
 
-            myShip.controlShip( NULL );
-            EnemyFormula::controlEnemies( NULL );
+            myShip.controlShip( nullptr );
+            EnemyFormula::controlEnemies( nullptr );
 
             /* ===== Keep main ship within boundaries of window ==== */
             sf::Vector2f myPos = myShip.drawShape->getPosition();
@@ -344,7 +315,7 @@ int main() {
             /* ===================================================== */
 
             if ( shootClock.getElapsedTime().asMilliseconds() > 250 ) {
-                if ( sf::Keyboard::isKeyPressed( sf::Keyboard::J ) ) {
+                if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Key::J ) ) {
                     Sounds::getInstance()->shoot().play();
                     Bullet::add( myShip , mainWin , sf::Color( 255 , 0 , 0 ) , Bullet::infinity );
 
@@ -356,7 +327,7 @@ int main() {
                     shootClock.restart();
                 }
 
-                else if ( sf::Keyboard::isKeyPressed( sf::Keyboard::K ) ) {
+                else if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Key::K ) ) {
                     Sounds::getInstance()->shoot().play();
                     Bullet::add( myShip , mainWin , sf::Color( 0 , 0 , 255 ) , Bullet::constant );
 
@@ -368,7 +339,7 @@ int main() {
                     shootClock.restart();
                 }
 
-                else if ( sf::Keyboard::isKeyPressed( sf::Keyboard::L ) ) {
+                else if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Key::L ) ) {
                     Sounds::getInstance()->shoot().play();
                     Bullet::add( myShip , mainWin , sf::Color( 0 , 0 , 0 ) , Bullet::zero );
 
@@ -399,26 +370,26 @@ int main() {
             /* ===== Handle background texture shifting with ship ===== */
             // Move background left
             if ( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x < mainWin.getSize().x / 2 + backSize.x ) {
-                backgroundSprite.setPosition( backgroundSprite.getPosition().x - backSize.x * ( std::ceil( std::fabs( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x - mainWin.getSize().x / 2 - backSize.x ) / backSize.x ) ) , backgroundSprite.getPosition().y );
+                backgroundSprite.setPosition( {backgroundSprite.getPosition().x - backSize.x * ( std::ceil( std::fabs( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x - mainWin.getSize().x / 2 - backSize.x ) / backSize.x ) ) , backgroundSprite.getPosition().y} );
             }
 
             // Move background right
             if ( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x > mainWin.getSize().x / 2 + backSize.x ) {
-                backgroundSprite.setPosition( backgroundSprite.getPosition().x + backSize.x * ( std::ceil( std::fabs( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x - mainWin.getSize().x / 2 - backSize.x ) / backSize.x ) ) , backgroundSprite.getPosition().y );
+                backgroundSprite.setPosition( {backgroundSprite.getPosition().x + backSize.x * ( std::ceil( std::fabs( backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x - mainWin.getSize().x / 2 - backSize.x ) / backSize.x ) ) , backgroundSprite.getPosition().y} );
             }
 
             // Move background up
             if ( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y < mainWin.getSize().y / 2 + backSize.y ) {
-                backgroundSprite.setPosition( backgroundSprite.getPosition().x , backgroundSprite.getPosition().y - backSize.y * ( std::ceil( std::fabs( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y - mainWin.getSize().y / 2 - backSize.y ) / backSize.y ) ) );
+                backgroundSprite.setPosition( {backgroundSprite.getPosition().x , backgroundSprite.getPosition().y - backSize.y * ( std::ceil( std::fabs( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y - mainWin.getSize().y / 2 - backSize.y ) / backSize.y ) )} );
             }
 
             // Move background down
             if ( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y > mainWin.getSize().y / 2 + backSize.y ) {
-                backgroundSprite.setPosition( backgroundSprite.getPosition().x , backgroundSprite.getPosition().y + backSize.y * ( std::ceil( std::fabs( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y - mainWin.getSize().y / 2 - backSize.y ) / backSize.y ) ) );
+                backgroundSprite.setPosition( {backgroundSprite.getPosition().x , backgroundSprite.getPosition().y + backSize.y * ( std::ceil( std::fabs( backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y - mainWin.getSize().y / 2 - backSize.y ) / backSize.y ) )} );
             }
             /* ======================================================== */
 
-            healthSprite.setTextureRect( sf::IntRect( 0 , 0 , healthTexture.getSize().x * myShip.getHealth() / 100.f , healthTexture.getSize().y ) );
+            healthSprite.setTextureRect( sf::IntRect( {0 , 0} , {static_cast<int>(healthTexture.getSize().x * myShip.getHealth() / 100.f) , static_cast<int>(healthTexture.getSize().y)} ) );
         }
         // Create high score graphic if it hasn't been already
         else if ( myShip.getHealth() == 0 && !isHiScoreCreated ) {
@@ -431,10 +402,10 @@ int main() {
             preScoreTexture.draw( hiScoreRect );
 
             // Write header
-            sf::Text hiScoreText( "High Scores" , UIFont::getInstance()->technical() , 50 );
+            sf::Text hiScoreText( global_font(), "High Scores" , 50 );
             hiScoreText.setPosition( sf::Vector2f( (hiScoreRect.getSize().x - hiScoreText.findCharacterPos( 12 ).x) / 2.f , drawRow ) );
             hiScoreText.setStyle( sf::Text::Bold );
-            hiScoreText.setColor( sf::Color( 255 , 255 , 255 ) );
+            hiScoreText.setFillColor( sf::Color( 255 , 255 , 255 ) );
             preScoreTexture.draw( hiScoreText );
 
             drawRow = drawRow + hiScoreText.getCharacterSize() + 15.f;
@@ -459,10 +430,7 @@ int main() {
             }
 
             std::cout << "GET NAME\n";
-            // Create dialog for accepting name for user's high score
-            CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("Edit"), TEXT("test"),
-                   WS_CHILD | WS_VISIBLE, 100, 20, 140,
-                   20, mainWin.getSystemHandle(), NULL, NULL, NULL);
+            // TODO: Create dialog for accepting name for user's high score
 
             // Process the player's current score
             std::stringstream ss;
@@ -484,16 +452,6 @@ int main() {
                 entries.erase( i );
             }
 
-            // Attempt to find the player's score
-            for ( std::map<std::string , std::string>::iterator i = entries.begin() ; i != entries.end() ; i++ ) {
-                if ( i->second == std::string("PLAYER") ) {
-                    // Store address of object pointed to by iterator
-                    player = &*i;
-
-                    break;
-                }
-            }
-
             // Draw all entries in order
             for ( std::map<std::string , std::string>::iterator i = entries.begin() ; i != entries.end() ; i++ ) {
                 // Skip drawing player because they have to enter their name later
@@ -507,14 +465,6 @@ int main() {
                     hiScoreText.setPosition( sf::Vector2f( 600 - hiScoreText.findCharacterPos( hiScoreText.getString().getSize() + 1 ).x , drawRow ) );
                     preScoreTexture.draw( hiScoreText );
                 //}
-#if 0
-                else {
-                    // TODO Allow name entry
-
-                    // Store the player's drawing row
-                    playerRow = drawRow;
-                }
-#endif
 
                 drawRow = drawRow + hiScoreText.getCharacterSize() + 10.f;
             }
@@ -537,13 +487,13 @@ int main() {
             preScoreTexture.display();
 
             hiScoreSprite.setTexture( preScoreTexture.getTexture() );
-            hiScoreSprite.setTextureRect( sf::IntRect( 0 , 0 , 600 , 450 ) );
+            hiScoreSprite.setTextureRect( sf::IntRect( {0 , 0} , {600 , 450} ) );
 
             isHiScoreCreated = true;
         }
 
-        HUDBackground.setPosition( mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f , mainWin.getView().getCenter().y + mainWin.getSize().y / 2.f - HUDBackground.getSize().y );
-        healthSprite.setPosition( mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f + 6.f , mainWin.getView().getCenter().y + mainWin.getSize().y / 2.f + 6.f - HUDBackground.getSize().y );
+        HUDBackground.setPosition( {mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f , mainWin.getView().getCenter().y + mainWin.getSize().y / 2.f - HUDBackground.getSize().y} );
+        healthSprite.setPosition( {mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f + 6.f , mainWin.getView().getCenter().y + mainWin.getSize().y / 2.f + 6.f - HUDBackground.getSize().y} );
 
         // Update score in text if needed
         if ( myShip.getScore() != scoreCount ) {
@@ -554,7 +504,7 @@ int main() {
             scoreText.setString( ss.str() );
         }
 
-        scoreText.setPosition( mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f + mainWin.getSize().x - (scoreText.findCharacterPos( scoreText.getString().getSize() + 1 ).x - scoreText.getPosition().x) - 20.f , mainWin.getView().getCenter().y + mainWin.getSize().y / 2.f - HUDBackground.getSize().y / 2.f - scoreText.getCharacterSize() / 2.f );
+        scoreText.setPosition( {mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f + mainWin.getSize().x - (scoreText.findCharacterPos( scoreText.getString().getSize() + 1 ).x - scoreText.getPosition().x) - 20.f , mainWin.getView().getCenter().y + mainWin.getSize().y / 2.f - HUDBackground.getSize().y / 2.f - scoreText.getCharacterSize() / 2.f} );
 
         mainWin.clear( sf::Color( 10 , 10 , 10 ) );
 
@@ -611,9 +561,9 @@ int main() {
 
                 for ( unsigned int y = 0 ; y < titleImg.getSize().y ; y++ ) {
                     for ( unsigned int x = 0 ; x < titleImg.getSize().x ; x++ ) {
-                        pxlColor = titleImg.getPixel( x , y );
+                        pxlColor = titleImg.getPixel( {x , y} );
                         pxlColor.a = 255 - 255 * (FADE_TIME - diffSecs) / FADE_TIME;
-                        titleImg.setPixel( x , y , pxlColor );
+                        titleImg.setPixel( {x , y} , pxlColor );
                     }
                 }
 
@@ -626,9 +576,9 @@ int main() {
 
                 for ( unsigned int y = 0 ; y < titleImg.getSize().y ; y++ ) {
                     for ( unsigned int x = 0 ; x < titleImg.getSize().x ; x++ ) {
-                        pxlColor = titleImg.getPixel( x , y );
+                        pxlColor = titleImg.getPixel( {x , y} );
                         pxlColor.a = 255 - 255 * (diffSecs - FADE_TIME) / FADE_TIME;
-                        titleImg.setPixel( x , y , pxlColor );
+                        titleImg.setPixel( {x , y} , pxlColor );
                     }
                 }
 
@@ -636,9 +586,9 @@ int main() {
 
                 for ( unsigned int y = 0 ; y < createdImg.getSize().y ; y++ ) {
                     for ( unsigned int x = 0 ; x < createdImg.getSize().x ; x++ ) {
-                        pxlColor = createdImg.getPixel( x , y );
+                        pxlColor = createdImg.getPixel( {x , y} );
                         pxlColor.a = 255 - 255 * (FADE_TIME - diffSecs) / FADE_TIME;
-                        createdImg.setPixel( x , y , pxlColor );
+                        createdImg.setPixel( {x , y} , pxlColor );
                     }
                 }
 
@@ -651,9 +601,9 @@ int main() {
 
                 for ( unsigned int y = 0 ; y < createdImg.getSize().y ; y++ ) {
                     for ( unsigned int x = 0 ; x < createdImg.getSize().x ; x++ ) {
-                        pxlColor = createdImg.getPixel( x , y );
+                        pxlColor = createdImg.getPixel( {x , y} );
                         pxlColor.a = 255 - 255 * (diffSecs - FADE_TIME) / FADE_TIME;
-                        createdImg.setPixel( x , y , pxlColor );
+                        createdImg.setPixel( {x , y} , pxlColor );
                     }
                 }
 
@@ -668,33 +618,33 @@ int main() {
         if ( myShip.getHealth() == 0 ) {
             if ( isHiScoreCreated ) {
                 // Display high scores table and save the latest one to a file
-                hiScoreSprite.setPosition( sf::Vector2f( mainWin.getView().getCenter().x - hiScoreSprite.getTextureRect().width / 2.f , mainWin.getView().getCenter().y - hiScoreSprite.getTextureRect().height / 2.f ) );
+                hiScoreSprite.setPosition( sf::Vector2f( mainWin.getView().getCenter().x - hiScoreSprite.getTextureRect().size.x / 2.f , mainWin.getView().getCenter().y - hiScoreSprite.getTextureRect().size.y / 2.f ) );
                 mainWin.draw( hiScoreSprite );
             }
         }
 
         // Draw pause graphic over everything if paused
         if ( isPaused ) {
-            pauseSprite.setPosition( sf::Vector2f( mainWin.getView().getCenter().x - pauseSprite.getTextureRect().width / 2.f , mainWin.getView().getCenter().y - pauseSprite.getTextureRect().height / 2.f ) );
+            pauseSprite.setPosition( sf::Vector2f( mainWin.getView().getCenter().x - pauseSprite.getTextureRect().size.x / 2.f , mainWin.getView().getCenter().y - pauseSprite.getTextureRect().size.y / 2.f ) );
             mainWin.draw( pauseSprite );
         }
 
         mainWin.display();
 
-        mainWin.setView( sf::View( sf::FloatRect( backBody.drawShape->getPosition().x - mainWin.getSize().x / 2 , backBody.drawShape->getPosition().y - mainWin.getSize().y / 2 , mainWin.getSize().x , mainWin.getSize().y ) ) );
+        mainWin.setView( sf::View( sf::FloatRect( {backBody.drawShape->getPosition().x - mainWin.getSize().x / 2 , backBody.drawShape->getPosition().y - mainWin.getSize().y / 2} , sf::Vector2f{mainWin.getSize()} ) ) );
 
-        while ( mainWin.pollEvent( event ) ) {
-            if ( event.type == sf::Event::Closed ) {
+        while ( auto event = mainWin.pollEvent() ) {
+            if ( event->is<sf::Event::Closed>() ) {
                 mainWin.close();
             }
-            else if ( event.type == sf::Event::Resized ) {
-                backgroundSprite.setTextureRect( sf::IntRect( -backSize.x , -backSize.y , mainWin.getSize().x + 2.f * backSize.x , mainWin.getSize().y + 2.f * backSize.y ) );
+            else if ( event->is<sf::Event::Resized>() ) {
+                backgroundSprite.setTextureRect( sf::IntRect( -sf::Vector2i{backSize} , {static_cast<int>(mainWin.getSize().x + 2.f * backSize.x) , static_cast<int>(mainWin.getSize().y + 2.f * backSize.y)} ) );
 
-                HUDBackground.setScale( mainWin.getSize().x / 50.f , HUDBackground.getScale().y );
+                HUDBackground.setScale( {mainWin.getSize().x / 50.f , HUDBackground.getScale().y} );
             }
 
-            else if ( event.type == sf::Event::KeyReleased ) {
-                if ( event.key.code == sf::Keyboard::Return ) {
+            else if ( auto key_event = event->getIf<sf::Event::KeyReleased>() ) {
+                if ( key_event->code == sf::Keyboard::Key::Enter ) {
                     isPaused = !isPaused;
 
                     if ( isPaused ) {
@@ -712,12 +662,12 @@ int main() {
                     mainWin.setMouseCursorVisible( isPaused );
                 }
                 // Skip intro if space bar is pressed and released
-                else if ( event.key.code == sf::Keyboard::Space ) {
+                else if ( key_event->code == sf::Keyboard::Key::Space ) {
                     titlePart = TOTAL_STEPS + 1;
                 }
             }
 
-            else if ( event.type == sf::Event::LostFocus ) {
+            else if ( event->is<sf::Event::FocusLost>() ) {
                 isPaused = true;
 
                 // Stop background music while pausing
@@ -727,7 +677,7 @@ int main() {
                 mainWin.setMouseCursorVisible( isPaused );
             }
 
-            else if ( event.type == sf::Event::GainedFocus ) {
+            else if ( event->is<sf::Event::FocusGained>() ) {
                 isPaused = false;
 
                 // Resume background music when not paused

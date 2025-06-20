@@ -50,7 +50,7 @@ Box2DBase::~Box2DBase() {
 
 void Box2DBase::syncObject( const sf::Window& referTo ) {
     drawShape->setPosition( BoxToSFML( body->GetPosition().x , body->GetPosition().y , referTo.getSize().y ) );
-    drawShape->setRotation( 360.f - body->GetAngle() * 180.f / b2_pi );
+    drawShape->setRotation( sf::radians(-body->GetAngle()) );
 }
 
 void Box2DBase::draw( sf::RenderTarget& target , sf::RenderStates states ) const {
@@ -60,6 +60,5 @@ void Box2DBase::draw( sf::RenderTarget& target , sf::RenderStates states ) const
 void Box2DBase::setTexture( sf::Texture* texture , sf::Vector2u subSize ) {
     drawShape->setTexture( texture );
 
-    sf::IntRect tempRect( 0 , 0 , subSize.x , subSize.y );
-    drawShape->setTextureRect( tempRect );
+    drawShape->setTextureRect( sf::IntRect{{0 , 0} , sf::Vector2i{subSize}} );
 }

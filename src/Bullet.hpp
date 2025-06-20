@@ -37,9 +37,9 @@ public:
     // This function may change the referenced ship's health
     static void checkCollisions( ShipBase& ship , const sf::RenderWindow& referTo ); // checks if bullet collided with other object or left the screen to destroy it
 
-    const b2Body* const getSourceBody() const;
+    const b2Body* getSourceBody() const;
 
-    const BulletType getType() const;
+    BulletType getType() const;
 
 protected:
     static std::vector<Bullet*> m_bullets;

@@ -19,7 +19,7 @@ std::map<std::string , std::string> EnemyFormula::m_limits;
 
 EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : ShipBase( position , 4 , 1 ) {
     if ( !m_isLoaded ) {
-        sf::Texture* tempTexture = NULL;
+        sf::Texture* tempTexture = nullptr;
         sf::Image* tempImage = new sf::Image;
         sf::Vector2u tempSize;
 
@@ -30,7 +30,7 @@ EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : Ship
         // Load limits for each file
         std::string line;
         unsigned int colonPos = 0;
-        std::ifstream limitsFile( "Resources/Functions/limits.txt" );
+        std::ifstream limitsFile( "resources/functions/limits.txt" );
         if ( limitsFile.is_open() ) {
             while ( !limitsFile.eof() ) {
                 line.clear();
@@ -60,10 +60,9 @@ EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : Ship
         for ( unsigned int i = 1 ; stillLoading ; i++ ) {
             ss.clear();
             ss.str( "" );
-            ss << "Resources/Functions/" << i << ".png";
+            ss << "resources/functions/" << i << ".png";
 
             // We need a new texture for each image
-            tempTexture = new sf::Texture;
             stillLoading = tempImage->loadFromFile( ss.str() );
 
             if ( stillLoading ) {
@@ -72,8 +71,8 @@ EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : Ship
 
                 tempImage->createMaskFromColor( sf::Color( 255 , 255 , 255 ) , 0 );
 
-                tempTexture->create( nextPowerTwo( tempSize.x ) , nextPowerTwo( tempSize.y ) );
-                tempTexture->update( *tempImage , 1 , 1 );
+                tempTexture = new sf::Texture{{nextPowerTwo(tempSize.x), nextPowerTwo(tempSize.y)}};
+                tempTexture->update( *tempImage );
 
                 m_textures.push_back( tempTexture );
                 m_sizes.push_back( tempSize );
@@ -119,7 +118,7 @@ EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : Ship
     for ( unsigned int i = 0 ; i < 4 ; i++ ) {
         shape.setPoint( i , sf::Vector2f( BoxToSFML_x( shipVertices[i].x ) , BoxToSFML_y( shipVertices[i].y ,  m_formulaTexture->getSize().y ) ) );
     }
-    shape.setOrigin( 0 , m_textures[imgPos]->getSize().y + 1 );
+    shape.setOrigin( {0.f , static_cast<float>(m_textures[imgPos]->getSize().y + 1)} );
 
     Box2DBase::setTexture( m_formulaTexture , tempSize );
     /* ============================= */
@@ -151,7 +150,7 @@ EnemyFormula::EnemyFormula( const sf::Vector2f& position , b2Vec2 speed ) : Ship
     m_userData.formulaObj = this;
 
     // Assign user data to Box2D body
-    body->SetUserData( &m_userData );
+    body->GetUserData().pointer = reinterpret_cast<uintptr_t>(&m_userData);
 }
 
 EnemyFormula::~EnemyFormula() {
@@ -182,7 +181,7 @@ void EnemyFormula::cleanup() {
     }
 }
 
-void EnemyFormula::drawAll( const ShipBase& ship , sf::RenderTarget& target , sf::RenderStates states ) {
+void EnemyFormula::drawAll( [[maybe_unused]] const ShipBase& ship , sf::RenderTarget& target , [[maybe_unused]] sf::RenderStates states ) {
     for ( unsigned int index = 0 ; index < m_enemyFormulas.size() ; index++ ) {
         // Redraw formula
         target.draw( *m_enemyFormulas[index] );
@@ -253,7 +252,7 @@ void EnemyFormula::controlEnemies( void* userData ) {
     }
 }
 
-void EnemyFormula::controlShip( void* userData ) {
+void EnemyFormula::controlShip( [[maybe_unused]] void* userData ) {
     // Adjust velocity to one given upon construction
     body->SetLinearVelocity( m_speed );
 }

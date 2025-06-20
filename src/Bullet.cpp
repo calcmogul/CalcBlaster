@@ -5,6 +5,9 @@
 //=============================================================================
 
 #include "Bullet.hpp"
+
+#include <numbers>
+
 #include "ShipBase.hpp"
 #include "Sounds.hpp"
 #include "EnemyFormula.hpp"
@@ -31,7 +34,7 @@ void Bullet::cleanup() {
     }
 }
 
-void Bullet::drawAll( sf::RenderTarget& target , sf::RenderStates states ) {
+void Bullet::drawAll( sf::RenderTarget& target , [[maybe_unused]] sf::RenderStates states ) {
     for ( unsigned int i = 0 ; i < m_bullets.size() ; i++ ) {
         target.draw( *m_bullets[i] );
     }
@@ -73,14 +76,14 @@ void Bullet::checkCollisions( ShipBase& ship , const sf::RenderWindow& referTo )
 
         // Check for collisions with other objects
         b2ContactEdge* contact = bullet->body->GetContactList();
-        while ( contact != NULL ) {
+        while ( contact != nullptr ) {
             // Don't let bullet hit its source body
             if ( bullet->getSourceBody() != contact->other ) {
                 /* Act upon 'other' object if it's an EnemyFormula
-                 * (Only that class has a non-NULL userData pointer)
+                 * (Only that class has a non-nullptr userData pointer)
                  */
-                if ( contact->other->GetUserData() != NULL ) {
-                    userData* tempData = static_cast<userData*>( contact->other->GetUserData() );
+                if ( contact->other->GetUserData().pointer != 0 ) {
+                    userData* tempData = reinterpret_cast<userData*>( contact->other->GetUserData().pointer );
 
                     // If type of formula matches type of bullet
                     if ( tempData->formulaType == bullet->getType() ) {
@@ -111,7 +114,7 @@ void Bullet::checkCollisions( ShipBase& ship , const sf::RenderWindow& referTo )
                 delete bullet; // bullet hit something so delete it
 
                 // Make sure loop terminates
-                contact = NULL;
+                contact = nullptr;
                 continue; // stop checking body collisions for this bullet because it doesn't exist anymore
             }
 
@@ -122,47 +125,45 @@ void Bullet::checkCollisions( ShipBase& ship , const sf::RenderWindow& referTo )
     }
 }
 
-const b2Body* const Bullet::getSourceBody() const {
+const b2Body* Bullet::getSourceBody() const {
     return m_sourceBody;
 }
 
-const Bullet::BulletType Bullet::getType() const {
+Bullet::BulletType Bullet::getType() const {
     return m_type;
 }
 
-Bullet::Bullet( const ShipBase& ship , const sf::Window& referTo , const sf::Color& color , BulletType type ) :
-        Box2DBase( &shape , BoxToSFML( ship.body->GetPosition().x + 1.3f * cos( ship.body->GetAngle() + b2_pi / 2.f ) , ship.body->GetPosition().y + 1.3f * sin( ship.body->GetAngle() + b2_pi / 2.f ) , referTo.getSize().y ) , b2_dynamicBody ) ,
+Bullet::Bullet( const ShipBase& ship , const sf::Window& referTo , [[maybe_unused]] const sf::Color& color , BulletType type ) :
+        Box2DBase( &shape , BoxToSFML( ship.body->GetPosition().x + 1.3f * cos( ship.body->GetAngle() + std::numbers::pi_v<float> / 2.f ) , ship.body->GetPosition().y + 1.3f * sin( ship.body->GetAngle() + std::numbers::pi_v<float> / 2.f ) , referTo.getSize().y ) , b2_dynamicBody ) ,
         m_sourceBody( ship.body ) ,
         m_type( type ) {
     if ( !m_isLoaded ) {
-        sf::Image tempImg;
-
         // Load zero bullet
-        if ( !tempImg.loadFromFile( "Resources/Bullets/Zero.png" ) ) {
-            tempImg.create( 16 , 16 , sf::Color( 255 , 0 , 0 ) );
+        {
+            sf::Image tempImg{"resources/bullets/Zero.png"};
+            tempImg.createMaskFromColor( sf::Color( 255 , 255 , 255 ) , 0 );
+            m_textures[zero] = sf::Texture{{16 , 16}};
+            m_textures[zero].update( tempImg );
+            m_sizes[zero] = tempImg.getSize();
         }
-        tempImg.createMaskFromColor( sf::Color( 255 , 255 , 255 ) , 0 );
-        m_textures[zero].create( 16 , 16 );
-        m_textures[zero].update( tempImg );
-        m_sizes[zero] = tempImg.getSize();
 
         // Load constant bullet
-        if ( !tempImg.loadFromFile( "Resources/Bullets/Constant.png" ) ) {
-            tempImg.create( 16 , 16 , sf::Color( 0 , 0 , 0 ) );
+        {
+            sf::Image tempImg{"resources/bullets/Constant.png"};
+            tempImg.createMaskFromColor( sf::Color( 255 , 255 , 255 ) , 0 );
+            m_textures[constant] = sf::Texture{{16 , 16}};
+            m_textures[constant].update( tempImg );
+            m_sizes[constant] = tempImg.getSize();
         }
-        tempImg.createMaskFromColor( sf::Color( 255 , 255 , 255 ) , 0 );
-        m_textures[constant].create( 16 , 16 );
-        m_textures[constant].update( tempImg );
-        m_sizes[constant] = tempImg.getSize();
 
         // Load infinity bullet
-        if ( !tempImg.loadFromFile( "Resources/Bullets/Infinity.png" ) ) {
-            tempImg.create( 16 , 16 , sf::Color( 0 , 0 , 255 ) );
+        {
+            sf::Image tempImg{"resources/bullets/Infinity.png"};
+            tempImg.createMaskFromColor( sf::Color( 255 , 255 , 255 ) , 0 );
+            m_textures[infinity] = sf::Texture{{16 , 16}};
+            m_textures[infinity].update( tempImg );
+            m_sizes[infinity] = tempImg.getSize();
         }
-        tempImg.createMaskFromColor( sf::Color( 255 , 255 , 255 ) , 0 );
-        m_textures[infinity].create( 16 , 16 );
-        m_textures[infinity].update( tempImg );
-        m_sizes[infinity] = tempImg.getSize();
 
         m_isLoaded = true;
     }
@@ -175,7 +176,7 @@ Bullet::Bullet( const ShipBase& ship , const sf::Window& referTo , const sf::Col
 
     // Set correct texture for the given type
     shape.setTexture( &(m_textures[type]) );
-    shape.setTextureRect( sf::IntRect( 0 , 0 , m_sizes[type].x , m_sizes[type].y ) );
+    shape.setTextureRect( sf::IntRect( {0 , 0} , sf::Vector2i{m_sizes[type]} ) );
 
     float angle = ship.body->GetAngle();
 
@@ -189,6 +190,6 @@ Bullet::Bullet( const ShipBase& ship , const sf::Window& referTo , const sf::Col
     body->CreateFixture( &bulletBox , 1.f );
     body->SetBullet( true );
 
-    body->SetLinearVelocity( b2Vec2( 10.f * cos( angle + b2_pi / 2.f ) , 10.f + 10.f * sin( angle + b2_pi / 2.f ) ) + ship.body->GetLinearVelocity() );
+    body->SetLinearVelocity( b2Vec2( 10.f * cos( angle + std::numbers::pi_v<float> / 2.f ) , 10.f + 10.f * sin( angle + std::numbers::pi_v<float> / 2.f ) ) + ship.body->GetLinearVelocity() );
     body->SetTransform( body->GetPosition() , angle );
 }

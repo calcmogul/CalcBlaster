@@ -1,13 +1,3 @@
-*.log
-*.a
-*.dll
-*.d
-*.o
-*.exe
-
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-Makefile
-
+.cache/
+build/
 HighScore.txt

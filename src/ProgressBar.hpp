@@ -12,8 +12,6 @@
 #include <SFML/Graphics/Shader.hpp>
 #include <SFML/Graphics/Text.hpp>
 
-#include "UIFont.hpp"
-
 class ProgressBar : public sf::RectangleShape {
 public:
     ProgressBar( const sf::Vector2f& size , std::string message , const sf::Color& fullFillColor , const sf::Color& emptyFillColor , const sf::Color& outlineColor , float percentFull = 100.f );
@@ -31,7 +29,7 @@ public:
     const sf::String& getString();
 
     void setBarFillColor( const sf::Color& fill );
-    const sf::Color& getBarFillColor();
+    sf::Color getBarFillColor();
 
     sf::Shader shader;
 
