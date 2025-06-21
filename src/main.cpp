@@ -25,7 +25,6 @@
 #include "friendly_ship.hpp"
 #include "globals.hpp"
 #include "sounds.hpp"
-#include "utils.hpp"
 
 // Constants used during title screen animation
 const float DISP_TIME = 2.f;

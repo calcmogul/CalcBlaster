@@ -2,6 +2,7 @@
 
 #include "enemy_formula.hpp"
 
+#include <bit>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -10,7 +11,6 @@
 #include <vector>
 
 #include "sounds.hpp"
-#include "utils.hpp"
 
 bool EnemyFormula::m_isLoaded = false;
 std::vector<EnemyFormula*> EnemyFormula::m_enemyFormulas;
@@ -75,7 +75,7 @@ EnemyFormula::EnemyFormula(const sf::Vector2f& position, b2Vec2 speed)
         tempImage->createMaskFromColor(sf::Color(255, 255, 255), 0);
 
         tempTexture = new sf::Texture{
-            sf::Vector2u{nextPowerTwo(tempSize.x), nextPowerTwo(tempSize.y)}};
+            sf::Vector2u{std::bit_ceil(tempSize.x), std::bit_ceil(tempSize.y)}};
         tempTexture->update(*tempImage);
 
         m_textures.push_back(tempTexture);
