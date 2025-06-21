@@ -1,13 +1,13 @@
 // Copyright (c) Tyler Veness
 
-#include "Bullet.hpp"
+#include "bullet.hpp"
 
 #include <numbers>
 #include <vector>
 
-#include "EnemyFormula.hpp"
-#include "ShipBase.hpp"
-#include "Sounds.hpp"
+#include "enemy_formula.hpp"
+#include "ship_base.hpp"
+#include "sounds.hpp"
 
 std::vector<Bullet*> Bullet::m_bullets;
 sf::Texture Bullet::m_textures[Bullet::size];

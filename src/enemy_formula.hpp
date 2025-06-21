@@ -6,8 +6,8 @@
 #include <string>
 #include <vector>
 
-#include "Bullet.hpp"
-#include "ShipBase.hpp"
+#include "bullet.hpp"
+#include "ship_base.hpp"
 
 class EnemyFormula;
 

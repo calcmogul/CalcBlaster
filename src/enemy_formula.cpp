@@ -1,6 +1,6 @@
 // Copyright (c) Tyler Veness
 
-#include "EnemyFormula.hpp"
+#include "enemy_formula.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -9,8 +9,8 @@
 #include <string>
 #include <vector>
 
-#include "Sounds.hpp"
-#include "Utils.hpp"
+#include "sounds.hpp"
+#include "utils.hpp"
 
 bool EnemyFormula::m_isLoaded = false;
 std::vector<EnemyFormula*> EnemyFormula::m_enemyFormulas;

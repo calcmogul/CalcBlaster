@@ -1,6 +1,6 @@
 // Copyright (c) Tyler Veness
 
-#include "ProgressBar.hpp"
+#include "progress_bar.hpp"
 
 #include <string>
 

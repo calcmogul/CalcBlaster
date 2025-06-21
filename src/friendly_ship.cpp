@@ -1,6 +1,6 @@
 // Copyright (c) Tyler Veness
 
-#include "FriendlyShip.hpp"
+#include "friendly_ship.hpp"
 
 #include <SFML/Graphics/Image.hpp>
 #include <SFML/Window/Keyboard.hpp>

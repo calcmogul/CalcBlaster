@@ -1,6 +1,6 @@
 // Copyright (c) Tyler Veness
 
-#include "Utils.hpp"
+#include "utils.hpp"
 
 #include <cmath>
 

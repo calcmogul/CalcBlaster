@@ -20,12 +20,12 @@
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
-#include "Bullet.hpp"
-#include "EnemyFormula.hpp"
-#include "FriendlyShip.hpp"
-#include "Sounds.hpp"
-#include "Utils.hpp"
+#include "bullet.hpp"
+#include "enemy_formula.hpp"
+#include "friendly_ship.hpp"
 #include "globals.hpp"
+#include "sounds.hpp"
+#include "utils.hpp"
 
 // Constants used during title screen animation
 const float DISP_TIME = 2.f;

@@ -1,6 +1,6 @@
 // Copyright (c) Tyler Veness
 
-#include "Sounds.hpp"
+#include "sounds.hpp"
 
 Sounds* Sounds::m_instance = nullptr;
 

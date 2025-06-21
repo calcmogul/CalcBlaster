@@ -1,6 +1,6 @@
 // Copyright (c) Tyler Veness
 
-#include "ShipBase.hpp"
+#include "ship_base.hpp"
 
 #include <SFML/Graphics/Image.hpp>
 

@@ -1,6 +1,6 @@
 // Copyright (c) Tyler Veness
 
-#include "Box2DBase.hpp"
+#include "box2d_base.hpp"
 
 float BoxToSFML_x(float x) {
   return x * 30.f;

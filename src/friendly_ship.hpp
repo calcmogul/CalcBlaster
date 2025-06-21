@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ShipBase.hpp"
+#include "ship_base.hpp"
 
 /**
  * Handles actions and rendering of friendly ships (including player).

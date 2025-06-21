@@ -7,7 +7,7 @@
 #include <SFML/Graphics/ConvexShape.hpp>
 #include <SFML/Graphics/Texture.hpp>
 
-#include "Box2DBase.hpp"
+#include "box2d_base.hpp"
 
 /**
  * Controls Box2D ship.
