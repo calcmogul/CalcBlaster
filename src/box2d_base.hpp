@@ -2,11 +2,10 @@
 
 #pragma once
 
-#include <box2d/box2d.h>
-
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/Shape.hpp>
 #include <SFML/Window/Window.hpp>
+#include <box2d/box2d.h>
 
 float BoxToSFML_x(float x);
 float BoxToSFML_y(float y, float boxHeight);
