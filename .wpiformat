@@ -1,0 +1,6 @@
+modifiableFileExclude {
+  \.flac$
+  \.ico$
+  \.png$
+  \.ttf$
+}
