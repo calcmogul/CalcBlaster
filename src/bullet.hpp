@@ -13,9 +13,7 @@
 
 class ShipBase;
 
-/**
- * Handles all bullets created by entities.
- */
+/// Handles all bullets created by entities.
 class Bullet : public Box2DBase {
  public:
   enum BulletType { zero = 0, constant, infinity, size };

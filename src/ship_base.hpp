@@ -9,9 +9,7 @@
 
 #include "box2d_base.hpp"
 
-/**
- * Controls Box2D ship.
- */
+/// Controls Box2D ship.
 class ShipBase : public Box2DBase {
  public:
   // 'pts' is number of points in convex shape

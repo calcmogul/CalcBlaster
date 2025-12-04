@@ -4,9 +4,7 @@
 
 #include "ship_base.hpp"
 
-/**
- * Handles actions and rendering of friendly ships (including player).
- */
+/// Handles actions and rendering of friendly ships (including player).
 class FriendlyShip : public ShipBase {
  public:
   FriendlyShip(const sf::Vector2f& position, float fullHealth);

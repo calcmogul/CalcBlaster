@@ -6,12 +6,10 @@
 #include <SFML/Audio/Sound.hpp>
 #include <SFML/Audio/SoundBuffer.hpp>
 
-/**
- * Provides a collection of sounds for use by other classes.
- */
+/// Provides a collection of sounds for use by other classes.
 class Sounds {
  public:
-  // @return a global instance of the resources available
+  /// @return a global instance of the resources available
   static Sounds* getInstance();
 
   sf::Music& background();

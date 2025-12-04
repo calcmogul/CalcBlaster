@@ -9,9 +9,7 @@
 #include <SFML/Graphics/Shader.hpp>
 #include <SFML/Graphics/Text.hpp>
 
-/**
- * Progress bar class.
- */
+/// Progress bar class.
 class ProgressBar : public sf::RectangleShape {
  public:
   ProgressBar(const sf::Vector2f& size, std::string message,

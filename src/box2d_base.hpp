@@ -17,9 +17,7 @@ float SFMLToBox_y(float y, float boxHeight);
 
 b2Vec2 SFMLToBox(float x, float y, float boxHeight);
 
-/**
- * Base class for Box2D shapes with SFML.
- */
+/// Base class for Box2D shapes with SFML.
 class Box2DBase : public sf::Drawable {
  public:
   Box2DBase(sf::Shape* sfShape,            // SFML shape to sync with Box2D

@@ -4,7 +4,5 @@
 
 #include <SFML/Graphics/Font.hpp>
 
-/**
- * Returns the application-wide font.
- */
+/// Returns the application-wide font.
 sf::Font& global_font();

@@ -17,9 +17,7 @@ struct userData {
   EnemyFormula* formulaObj;
 };
 
-/**
- * Handles actions/AI and rendering of enemy formulas.
- */
+/// Handles actions/AI and rendering of enemy formulas.
 class EnemyFormula : public ShipBase {
  public:
   EnemyFormula(const sf::Vector2f& position, b2Vec2 speed);
