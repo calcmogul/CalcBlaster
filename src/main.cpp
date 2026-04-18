@@ -273,8 +273,10 @@ int main() {
   pauseRect.setFillColor(sf::Color(90, 90, 90, 170));
 
   sf::Text pauseText(global_font(), "PAUSED", 50);
+  sf::Vector2f localPos = pauseText.getShapedGlyphs().back().position;
+  sf::Vector2f globalPos = pauseText.getTransform().transformPoint(localPos);
   pauseText.setPosition(sf::Vector2f(
-      (pauseRect.getSize().x - pauseText.findCharacterPos(7).x) / 2.f,
+      (pauseRect.getSize().x - globalPos.x) / 2.f,
       (pauseRect.getSize().y - pauseText.getCharacterSize()) / 2.f));
   pauseText.setStyle(sf::Text::Bold);
   pauseText.setFillColor(sf::Color(255, 255, 255));
@@ -512,9 +514,11 @@ int main() {
 
       // Write header
       sf::Text hiScoreText(global_font(), "High Scores", 50);
-      hiScoreText.setPosition(sf::Vector2f(
-          (hiScoreRect.getSize().x - hiScoreText.findCharacterPos(12).x) / 2.f,
-          drawRow));
+      sf::Vector2f localPos = hiScoreText.getShapedGlyphs().back().position;
+      sf::Vector2f globalPos =
+          hiScoreText.getTransform().transformPoint(localPos);
+      hiScoreText.setPosition(
+          sf::Vector2f((hiScoreRect.getSize().x - globalPos.x) / 2.f, drawRow));
       hiScoreText.setStyle(sf::Text::Bold);
       hiScoreText.setFillColor(sf::Color(255, 255, 255));
       preScoreTexture.draw(hiScoreText);
@@ -575,11 +579,10 @@ int main() {
         preScoreTexture.draw(hiScoreText);
 
         hiScoreText.setString(i->first);
-        hiScoreText.setPosition(sf::Vector2f(
-            600 - hiScoreText
-                      .findCharacterPos(hiScoreText.getString().getSize() + 1)
-                      .x,
-            drawRow));
+        sf::Vector2f localPos = hiScoreText.getShapedGlyphs().back().position;
+        sf::Vector2f globalPos =
+            hiScoreText.getTransform().transformPoint(localPos);
+        hiScoreText.setPosition(sf::Vector2f(600 - globalPos.x, drawRow));
         preScoreTexture.draw(hiScoreText);
         //}
 
@@ -628,16 +631,15 @@ int main() {
       scoreText.setString(ss.str());
     }
 
-    scoreText.setPosition(
-        {mainWin.getView().getCenter().x - mainWin.getSize().x / 2.f +
-             mainWin.getSize().x -
-             (scoreText.findCharacterPos(scoreText.getString().getSize() + 1)
-                  .x -
-              scoreText.getPosition().x) -
-             20.f,
-         mainWin.getView().getCenter().y + mainWin.getSize().y / 2.f -
-             HUDBackground.getSize().y / 2.f -
-             scoreText.getCharacterSize() / 2.f});
+    sf::Vector2f localPos = scoreText.getShapedGlyphs().back().position;
+    sf::Vector2f globalPos = scoreText.getTransform().transformPoint(localPos);
+    scoreText.setPosition({mainWin.getView().getCenter().x -
+                               mainWin.getSize().x / 2.f + mainWin.getSize().x -
+                               (globalPos.x - scoreText.getPosition().x) - 20.f,
+                           mainWin.getView().getCenter().y +
+                               mainWin.getSize().y / 2.f -
+                               HUDBackground.getSize().y / 2.f -
+                               scoreText.getCharacterSize() / 2.f});
 
     mainWin.clear(sf::Color(10, 10, 10));
 

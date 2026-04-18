@@ -22,10 +22,11 @@ set_property(TARGET CalcBlaster PROPERTY COMPILE_WARNING_AS_ERROR ON)
 target_compile_features(CalcBlaster PUBLIC cxx_std_23)
 target_include_directories(CalcBlaster PRIVATE src)
 
+set(SFML_USE_SYSTEM_DEPS OFF)
 FetchContent_Declare(
     SFML
     GIT_REPOSITORY https://github.com/SFML/SFML.git
-    GIT_TAG 3.0.2
+    GIT_TAG 3.1.0
     GIT_SHALLOW ON
     EXCLUDE_FROM_ALL
     SYSTEM
