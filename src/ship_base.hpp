@@ -14,7 +14,7 @@ class ShipBase : public Box2DBase {
  public:
   // 'pts' is number of points in convex shape
   ShipBase(const sf::Vector2f& position, uint32_t pts, int64_t fullHealth);
-  virtual ~ShipBase();
+  ~ShipBase() override;
 
   // userData contains special data needed by each function impl
   virtual void controlShip(void* userData) = 0;

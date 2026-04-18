@@ -215,53 +215,53 @@ int main() {
   /* ===== Handle background texture shifting with ship ===== */
   // Move background left
   if (backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x <
-      mainWin.getSize().x / 2 + backSize.x) {
+      mainWin.getSize().x / 2.f + backSize.x) {
     backgroundSprite.setPosition(
         {backgroundSprite.getPosition().x -
              backSize.x *
                  (std::ceil(std::fabs(backBody.drawShape->getPosition().x -
                                       backgroundSprite.getPosition().x -
-                                      mainWin.getSize().x / 2 - backSize.x) /
+                                      mainWin.getSize().x / 2.f - backSize.x) /
                             backSize.x)),
          backgroundSprite.getPosition().y});
   }
 
   // Move background right
   if (backBody.drawShape->getPosition().x - backgroundSprite.getPosition().x >
-      mainWin.getSize().x / 2 + backSize.x) {
+      mainWin.getSize().x / 2.f + backSize.x) {
     backgroundSprite.setPosition(
         {backgroundSprite.getPosition().x +
              backSize.x *
                  (std::ceil(std::fabs(backBody.drawShape->getPosition().x -
                                       backgroundSprite.getPosition().x -
-                                      mainWin.getSize().x / 2 - backSize.x) /
+                                      mainWin.getSize().x / 2.f - backSize.x) /
                             backSize.x)),
          backgroundSprite.getPosition().y});
   }
 
   // Move background up
   if (backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y <
-      mainWin.getSize().y / 2 + backSize.y) {
+      mainWin.getSize().y / 2.f + backSize.y) {
     backgroundSprite.setPosition(
         {backgroundSprite.getPosition().x,
          backgroundSprite.getPosition().y -
              backSize.y *
                  (std::ceil(std::fabs(backBody.drawShape->getPosition().y -
                                       backgroundSprite.getPosition().y -
-                                      mainWin.getSize().y / 2 - backSize.y) /
+                                      mainWin.getSize().y / 2.f - backSize.y) /
                             backSize.y))});
   }
 
   // Move background down
   if (backBody.drawShape->getPosition().y - backgroundSprite.getPosition().y >
-      mainWin.getSize().y / 2 + backSize.y) {
+      mainWin.getSize().y / 2.f + backSize.y) {
     backgroundSprite.setPosition(
         {backgroundSprite.getPosition().x,
          backgroundSprite.getPosition().y +
              backSize.y *
                  (std::ceil(std::fabs(backBody.drawShape->getPosition().y -
                                       backgroundSprite.getPosition().y -
-                                      mainWin.getSize().y / 2 - backSize.y) /
+                                      mainWin.getSize().y / 2.f - backSize.y) /
                             backSize.y))});
   }
   /* ======================================================== */
@@ -300,8 +300,8 @@ int main() {
   int32 positionIterations = 24;  // Min: 3
 
   mainWin.setView(sf::View(sf::FloatRect(
-      {backBody.drawShape->getPosition().x - mainWin.getSize().x / 2,
-       backBody.drawShape->getPosition().y - mainWin.getSize().y / 2},
+      {backBody.drawShape->getPosition().x - mainWin.getSize().x / 2.f,
+       backBody.drawShape->getPosition().y - mainWin.getSize().y / 2.f},
       sf::Vector2f{mainWin.getSize()})));
 
   sf::Clock gameTime;
@@ -439,13 +439,13 @@ int main() {
       // Move background left
       if (backBody.drawShape->getPosition().x -
               backgroundSprite.getPosition().x <
-          mainWin.getSize().x / 2 + backSize.x) {
+          mainWin.getSize().x / 2.f + backSize.x) {
         backgroundSprite.setPosition(
             {backgroundSprite.getPosition().x -
                  backSize.x *
                      (std::ceil(std::fabs(backBody.drawShape->getPosition().x -
                                           backgroundSprite.getPosition().x -
-                                          mainWin.getSize().x / 2 -
+                                          mainWin.getSize().x / 2.f -
                                           backSize.x) /
                                 backSize.x)),
              backgroundSprite.getPosition().y});
@@ -454,13 +454,13 @@ int main() {
       // Move background right
       if (backBody.drawShape->getPosition().x -
               backgroundSprite.getPosition().x >
-          mainWin.getSize().x / 2 + backSize.x) {
+          mainWin.getSize().x / 2.f + backSize.x) {
         backgroundSprite.setPosition(
             {backgroundSprite.getPosition().x +
                  backSize.x *
                      (std::ceil(std::fabs(backBody.drawShape->getPosition().x -
                                           backgroundSprite.getPosition().x -
-                                          mainWin.getSize().x / 2 -
+                                          mainWin.getSize().x / 2.f -
                                           backSize.x) /
                                 backSize.x)),
              backgroundSprite.getPosition().y});
@@ -469,14 +469,14 @@ int main() {
       // Move background up
       if (backBody.drawShape->getPosition().y -
               backgroundSprite.getPosition().y <
-          mainWin.getSize().y / 2 + backSize.y) {
+          mainWin.getSize().y / 2.f + backSize.y) {
         backgroundSprite.setPosition(
             {backgroundSprite.getPosition().x,
              backgroundSprite.getPosition().y -
                  backSize.y *
                      (std::ceil(std::fabs(backBody.drawShape->getPosition().y -
                                           backgroundSprite.getPosition().y -
-                                          mainWin.getSize().y / 2 -
+                                          mainWin.getSize().y / 2.f -
                                           backSize.y) /
                                 backSize.y))});
       }
@@ -484,14 +484,14 @@ int main() {
       // Move background down
       if (backBody.drawShape->getPosition().y -
               backgroundSprite.getPosition().y >
-          mainWin.getSize().y / 2 + backSize.y) {
+          mainWin.getSize().y / 2.f + backSize.y) {
         backgroundSprite.setPosition(
             {backgroundSprite.getPosition().x,
              backgroundSprite.getPosition().y +
                  backSize.y *
                      (std::ceil(std::fabs(backBody.drawShape->getPosition().y -
                                           backgroundSprite.getPosition().y -
-                                          mainWin.getSize().y / 2 -
+                                          mainWin.getSize().y / 2.f -
                                           backSize.y) /
                                 backSize.y))});
       }
@@ -775,8 +775,8 @@ int main() {
     mainWin.display();
 
     mainWin.setView(sf::View(sf::FloatRect(
-        {backBody.drawShape->getPosition().x - mainWin.getSize().x / 2,
-         backBody.drawShape->getPosition().y - mainWin.getSize().y / 2},
+        {backBody.drawShape->getPosition().x - mainWin.getSize().x / 2.f,
+         backBody.drawShape->getPosition().y - mainWin.getSize().y / 2.f},
         sf::Vector2f{mainWin.getSize()})));
 
     while (auto event = mainWin.pollEvent()) {

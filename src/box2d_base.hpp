@@ -24,13 +24,13 @@ class Box2DBase : public sf::Drawable {
             const sf::Vector2f& position,  // starting position of object
             b2BodyType bodyType = b2_staticBody  // Box2D body type
   );
-  virtual ~Box2DBase();
+  ~Box2DBase() override;
 
   virtual void syncObject(
       const sf::Window&
           referTo);  // syncs Box2D body attributes with SFML shape
-  virtual void draw(sf::RenderTarget& target,
-                    sf::RenderStates states = sf::RenderStates::Default) const;
+  void draw(sf::RenderTarget& target,
+            sf::RenderStates states = sf::RenderStates::Default) const override;
 
   // Sets texture of drawShape and the image size in that texture
   void setTexture(sf::Texture* texture, sf::Vector2u subSize);

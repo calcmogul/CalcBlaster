@@ -8,9 +8,9 @@
 class FriendlyShip : public ShipBase {
  public:
   FriendlyShip(const sf::Vector2f& position, float fullHealth);
-  virtual ~FriendlyShip();
+  ~FriendlyShip() override;
 
-  void controlShip(void* userData);
+  void controlShip(void* userData) override;
 
  private:
   static sf::Texture m_shipTexture;

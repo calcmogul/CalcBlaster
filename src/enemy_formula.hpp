@@ -21,7 +21,7 @@ struct userData {
 class EnemyFormula : public ShipBase {
  public:
   EnemyFormula(const sf::Vector2f& position, b2Vec2 speed);
-  virtual ~EnemyFormula();
+  ~EnemyFormula() override;
 
   // Call this at end of program to free all planets and avoid memory leaks
   static void cleanup();
@@ -58,5 +58,5 @@ class EnemyFormula : public ShipBase {
   // Bullets use this data to determine what to do with bodies they hit
   userData m_userData;
 
-  void controlShip(void* userData);
+  void controlShip(void* userData) override;
 };

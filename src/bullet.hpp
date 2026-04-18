@@ -18,7 +18,7 @@ class Bullet : public Box2DBase {
  public:
   enum BulletType { zero = 0, constant, infinity, size };
 
-  virtual ~Bullet();
+  ~Bullet() override;
 
   // Call this at end of program to free all bullets and avoid memory leaks
   static void cleanup();
