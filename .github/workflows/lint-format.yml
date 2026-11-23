@@ -88,8 +88,5 @@ jobs:
       - name: Create compile_commands.json
         run: cmake -B build -S . -DCMAKE_EXPORT_COMPILE_COMMANDS=YES
 
-      - name: List changed files
-        run: wpiformat -list-changed-files
-
       - name: Run clang-tidy
         run: wpiformat -no-format -tidy-all -compile-commands=build -tidy-extra-args std=c++23
